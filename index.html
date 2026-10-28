@@ -116,7 +116,7 @@ code { font-family: var(--font-code); font-size: .86em; background: var(--wall-2
 
 .presets { display: flex; flex-direction: column; gap: 10px; }
 .presets h2, .panel h2 { margin: 0; font-family: var(--font-display); font-weight: 500; font-size: 17px; }
-.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chips { display: flex; flex-wrap: nowrap; gap: 8px; }
 .chip { border: 1px solid var(--edge); background: var(--wall); border-radius: 999px; padding: 6px 14px; font-family: var(--font-display); font-size: 14px; cursor: pointer; transition: background .15s, border-color .15s; }
 .chip:hover { background: var(--wall-2); }
 .chip.on { background: var(--led); border-color: var(--led); color: var(--led-ink); font-weight: 500; }
@@ -140,7 +140,23 @@ code { font-family: var(--font-code); font-size: .86em; background: var(--wall-2
 .btn.link { border: 0; background: none; padding: 4px 0; color: var(--led); font-weight: 400; text-decoration: underline; text-underline-offset: 3px; }
 .btn.link:hover { background: none; color: #ffc46e; }
 .ownrow.actions { gap: 6px 22px; }
-.tabs { display: flex; flex-wrap: wrap; gap: 4px 4px; }
+.looknow { font-family: var(--font-display); font-size: 15px; color: var(--soft); }
+.looknow b { color: var(--ink); font-weight: 500; }
+/* One-line rows that slide sideways; an arrow shows on each side that has more. */
+.slider { position: relative; min-width: 0; }
+.slider > .tabs, .slider > .chips { overflow-x: auto; scrollbar-width: none; scroll-snap-type: x proximity; padding: 3px; margin: -3px; }
+.slider > .tabs::-webkit-scrollbar, .slider > .chips::-webkit-scrollbar { display: none; }
+.slider > * > * { flex: none; white-space: nowrap; scroll-snap-align: start; scroll-margin-left: 40px; }
+.slider.can-prev > :not(.arrow) { -webkit-mask-image: linear-gradient(90deg, transparent 0, transparent 30px, #000 72px); mask-image: linear-gradient(90deg, transparent 0, transparent 30px, #000 72px); }
+.slider.can-next > :not(.arrow) { -webkit-mask-image: linear-gradient(270deg, transparent 0, transparent 30px, #000 72px); mask-image: linear-gradient(270deg, transparent 0, transparent 30px, #000 72px); }
+.slider.can-prev.can-next > :not(.arrow) { -webkit-mask-image: linear-gradient(90deg, transparent 0, transparent 30px, #000 72px, #000 calc(100% - 72px), transparent calc(100% - 30px)); mask-image: linear-gradient(90deg, transparent 0, transparent 30px, #000 72px, #000 calc(100% - 72px), transparent calc(100% - 30px)); }
+.arrow { position: absolute; top: 50%; transform: translateY(-50%); z-index: 2; width: 30px; height: 30px; border-radius: 50%; border: 1px solid var(--edge); background: var(--wall-2); color: var(--ink); font-size: 18px; line-height: 1; display: none; align-items: center; justify-content: center; cursor: pointer; padding: 0 0 2px; }
+.arrow:hover { background: var(--glass-rim, var(--edge)); }
+.arrow.prev { left: 0; }
+.arrow.next { right: 0; }
+.slider.can-prev .arrow.prev, .slider.can-next .arrow.next { display: inline-flex; }
+.slider.dot-prev .arrow.prev::after, .slider.dot-next .arrow.next::after { content: ""; position: absolute; top: -2px; right: -2px; width: 9px; height: 9px; border-radius: 50%; background: var(--led); box-shadow: 0 0 0 2px var(--night); }
+.tabs { display: flex; flex-wrap: nowrap; gap: 4px; }
 .tab { flex: none; border: 0; background: transparent; color: var(--soft); border-radius: 10px; padding: 6px 11px; font-family: var(--font-display); font-size: 14.5px; cursor: pointer; display: inline-flex; gap: 7px; align-items: center; }
 .tab:hover { background: var(--glass); color: var(--ink); }
 .tab.on { background: var(--glass); color: var(--ink); box-shadow: inset 0 0 0 1px var(--glass-rim); }
@@ -353,9 +369,13 @@ textarea.list-in { width: 100%; min-height: 78px; background: var(--wall); borde
 
     <section class="editor" aria-label="Settings">
       <div class="presets">
-        <h2>Start from a look</h2>
-        <div class="chips" id="presets"></div>
+        <div id="lookPick" class="presets">
+          <h2>Start from a look</h2>
+          <div class="chips" id="presets"></div>
+        </div>
         <div class="ownrow actions">
+          <span id="lookNow" class="looknow" hidden></span>
+          <button class="btn link" type="button" id="lookChange" hidden>Change look</button>
           <button class="btn link" type="button" id="loadOpen" aria-expanded="false" aria-controls="loadBox">Load my own config.json</button>
           <button class="btn link startover" type="button">Start over</button>
         </div>
@@ -582,7 +602,7 @@ textarea.list-in { width: 100%; min-height: 78px; background: var(--wall); borde
     }
     return false;
   }
-  function setKey(k, val) { dropUndo(); if (same(val, DEF[k])) delete state[k]; else state[k] = val; preset = ""; save(); update(k); }
+  function setKey(k, val) { looksOpen = false; dropUndo(); if (same(val, DEF[k])) delete state[k]; else state[k] = val; preset = ""; save(); update(k); }
 
   // ---------- helpers ----------
   function esc(t) { return String(t).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;"); }
@@ -600,6 +620,7 @@ textarea.list-in { width: 100%; min-height: 78px; background: var(--wall); borde
   function renderList() {
     var q = searchEl.value.trim().toLowerCase();
     tabsEl.querySelectorAll(".tab").forEach(function (b) { var on = !q && b.dataset.g === tab; b.classList.toggle("on", on); b.setAttribute("aria-selected", on ? "true" : "false"); });
+    if (tabsSlider) tabsSlider();
     listEl.innerHTML = "";
     if (q) {
       $("sectionIntro").textContent = "Settings matching “" + searchEl.value.trim() + "”.";
@@ -771,7 +792,7 @@ textarea.list-in { width: 100%; min-height: 78px; background: var(--wall); borde
       if (!same(obj[k], DEF[k])) state[k] = obj[k];
       n++;
     });
-    preset = ""; save(); ORDER.forEach(syncRow); update();
+    preset = ""; lastLook = ""; looksOpen = false; save(); ORDER.forEach(syncRow); update();
     var parts = ["Loaded " + n + " setting" + (n === 1 ? "" : "s") + "."];
     if (xml.length) parts.push("Left out because a theme can't set them: " + xml.join(", ") + ".");
     if (unknown.length) parts.push("Not launcher settings, so ignored: " + unknown.join(", ") + ".");
@@ -793,7 +814,7 @@ textarea.list-in { width: 100%; min-height: 78px; background: var(--wall); borde
         state = {}; preset = "Built-in look"; setStartOver("Undo");
         undoTimer = setTimeout(function () { undoState = null; setStartOver("Start over"); }, 8000);
       }
-      save(); ORDER.forEach(syncRow); update();
+      looksOpen = true; save(); ORDER.forEach(syncRow); update();
     });
   });
 
@@ -1044,7 +1065,54 @@ textarea.list-in { width: 100%; min-height: 78px; background: var(--wall); borde
       document.querySelectorAll(".pane").forEach(function (p) { p.hidden = p.dataset.p !== b.dataset.p; });
     });
   });
-  function update(k) { if (k) syncRow(k); syncTabs(); syncPresets(); renderOut(); renderChecks(); draw(); }
+  // ---------- one-line rows with arrows ----------
+  function slider(row, label) {
+    var wrap = document.createElement("div"); wrap.className = "slider";
+    row.parentNode.insertBefore(wrap, row);
+    function arrow(cls, text, dir) {
+      var a = document.createElement("button"); a.type = "button"; a.className = "arrow " + cls; a.innerHTML = text; a.setAttribute("aria-label", (dir < 0 ? "Earlier " : "More ") + label);
+      a.addEventListener("click", function () { row.scrollBy({ left: dir * (row.clientWidth - 80), behavior: "smooth" }); });
+      return a;
+    }
+    wrap.append(arrow("prev", "&#8249;", -1), row, arrow("next", "&#8250;", 1));
+    // Arrows show only toward more; a dot on one means changed settings are out of view that way.
+    function edges() {
+      var a = row.scrollLeft, b = a + row.clientWidth, x0 = row.offsetLeft, dotL = false, dotR = false;
+      var prev = a > 1, next = b < row.scrollWidth - 1;
+      wrap.classList.toggle("can-prev", prev);
+      wrap.classList.toggle("can-next", next);
+      [].forEach.call(row.children, function (c) {
+        var n = c.querySelector(".n"); if (!n || n.hidden) return;
+        var l = c.offsetLeft - x0, r = l + c.offsetWidth;
+        if (prev && l < a + 30) dotL = true; else if (next && r > b - 30) dotR = true;
+      });
+      wrap.classList.toggle("dot-prev", dotL); wrap.classList.toggle("dot-next", dotR);
+    }
+    // Bring the selected item into view, then update the arrows.
+    function sync() {
+      var on = row.querySelector(".on");
+      if (on) {
+        var l = on.offsetLeft - row.offsetLeft, r = l + on.offsetWidth;
+        if (l < row.scrollLeft + 40) row.scrollLeft = Math.max(0, l - 40);
+        else if (r > row.scrollLeft + row.clientWidth - 40) row.scrollLeft = r - row.clientWidth + 40;
+      }
+      edges();
+    }
+    row.addEventListener("scroll", edges, { passive: true });
+    if (window.ResizeObserver) new ResizeObserver(edges).observe(row); else window.addEventListener("resize", edges);
+    return sync;
+  }
+  var tabsSlider = slider(tabsEl, "setting groups"), looksSlider = slider(presetsEl, "looks");
+
+  var looksOpen = !Object.keys(state).length, lastLook = preset;
+  function syncLooks() {
+    if (preset) lastLook = preset;
+    $("lookPick").hidden = !looksOpen; $("lookNow").hidden = $("lookChange").hidden = looksOpen;
+    var n = Object.keys(state).length, ch = n + " change" + (n === 1 ? "" : "s");
+    $("lookNow").innerHTML = preset ? "Look: <b>" + esc(preset) + "</b>" : lastLook && lastLook !== "Built-in look" ? "Look: <b>" + esc(lastLook) + "</b>, edited (" + ch + ")" : "Look: <b>your own</b>, " + ch;
+  }
+  $("lookChange").addEventListener("click", function () { looksOpen = true; syncLooks(); looksSlider(); });
+  function update(k) { if (k) syncRow(k); syncTabs(); syncPresets(); syncLooks(); tabsSlider(); looksSlider(); renderOut(); renderChecks(); draw(); }
 
   renderList(); fit(); update();
 })();
