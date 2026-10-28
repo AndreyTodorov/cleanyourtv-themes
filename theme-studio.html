@@ -1,0 +1,1017 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Clean Your TV Theme Studio</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@200;300;400;500;600&family=Atkinson+Hyperlegible:wght@400;700&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/*
+  Layout: a living room after dark. Left, the TV on its wall (sticky), lit from behind in the focused app's colour;
+  right, the settings list, styled like a TV menu. Below, the finished config.json and the three steps to use it.
+  One dark look on purpose: it is a TV at night.
+*/
+:root {
+  --night: #13152b;      /* the wall */
+  --wall: #1a1d38;       /* raised surfaces */
+  --wall-2: #222645;     /* inputs, hover */
+  --edge: #2e335a;       /* hairlines */
+  --ink: #f3f1ea;        /* warm white text */
+  --soft: #aeb2cc;       /* secondary text */
+  --faint: #7d82a6;      /* tertiary */
+  --led: #ffb547;        /* standby-LED amber: the accent */
+  --led-ink: #2b1a00;
+  --ok: #6ee7a8;
+  --warn: #ff9a62;
+  --bad: #ff5c7a;
+  --glass: rgba(255, 255, 255, .07);
+  --glass-rim: rgba(255, 255, 255, .22);
+  --font-display: "Outfit", "Avenir Next", "Segoe UI", sans-serif;
+  --font-body: "Atkinson Hyperlegible", "Verdana", sans-serif;
+  --font-code: "JetBrains Mono", ui-monospace, Menlo, Consolas, monospace;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { background: var(--night); color: var(--ink); }
+body {
+  font-family: var(--font-body); font-size: 15px; line-height: 1.55;
+  padding-block: 28px 80px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+button, input, select, textarea { font: inherit; color: inherit; }
+a { color: var(--led); text-underline-offset: 3px; }
+code { font-family: var(--font-code); font-size: .86em; background: var(--wall-2); border-radius: 5px; padding: 1px 5px; overflow-wrap: anywhere; }
+:focus-visible { outline: 2px solid var(--led); outline-offset: 2px; }
+.wrap { max-width: 1500px; margin: 0 auto; }
+
+/* Header */
+.masthead { display: flex; flex-wrap: wrap; gap: 12px 32px; align-items: end; justify-content: space-between; margin-bottom: 26px; }
+.brand { display: flex; flex-direction: column; gap: 6px; max-width: 62ch; }
+.brand h1 { margin: 0; font-family: var(--font-display); font-weight: 200; font-size: clamp(34px, 4.4vw, 58px); line-height: 1; letter-spacing: -.02em; }
+.brand h1 b { font-weight: 500; }
+.brand p { margin: 0; color: var(--soft); font-size: 16px; }
+.links { display: flex; gap: 18px; flex-wrap: wrap; font-size: 14px; }
+
+/* Main grid */
+.studio { display: grid; grid-template-columns: minmax(0, 1.18fr) minmax(0, 1fr); gap: 36px; align-items: start; }
+.stage { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+.tvblock { display: flex; flex-direction: column; gap: 12px; width: 100%; margin: 0 auto; }
+.hint { color: var(--faint); }
+/* The result card: three tabs, so the file, the steps and the checks are always one click away. */
+.card { background: var(--wall); border-radius: 20px; display: flex; flex-direction: column; min-width: 0; overflow: hidden; }
+.card-tabs { display: flex; gap: 4px; padding: 8px 8px 0; border-bottom: 1px solid var(--edge); flex-wrap: wrap; }
+.card-tabs button { border: 0; background: none; color: var(--soft); font-family: var(--font-display); font-size: 15px; padding: 9px 14px 11px; border-radius: 10px 10px 0 0; cursor: pointer; display: inline-flex; gap: 8px; align-items: center; position: relative; }
+.card-tabs button:hover { color: var(--ink); }
+.card-tabs button.on { color: var(--ink); }
+.card-tabs button.on::after { content: ""; position: absolute; left: 12px; right: 12px; bottom: -1px; height: 2px; border-radius: 2px; background: var(--led); }
+.card-tabs .n { min-width: 18px; height: 18px; border-radius: 9px; background: var(--warn); color: #2b1300; font-size: 11.5px; font-weight: 600; display: inline-flex; align-items: center; justify-content: center; padding: 0 5px; }
+.pane { padding: 16px 18px 18px; display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+.pane-head { display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: center; justify-content: space-between; }
+.pane-head p { margin: 0; color: var(--soft); font-size: 13.5px; flex: 1 1 220px; min-width: 0; }
+.presets { padding-top: 4px; display: flex; flex-direction: column; gap: 10px; }
+.ownrow { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.loadbox { background: var(--wall); border-radius: 16px; padding: 14px 16px; display: flex; flex-direction: column; gap: 10px; }
+.loadbox p { margin: 0; color: var(--soft); font-size: 13.5px; }
+.loadbox textarea { width: 100%; min-height: 140px; background: #0e1022; border: 1px solid var(--edge); border-radius: 12px; padding: 10px 12px; font-family: var(--font-code); font-size: 12.5px; line-height: 1.6; resize: vertical; }
+.msg:empty { display: none; }
+
+/* The TV on the wall, with bias lighting */
+.room { position: relative; padding: 34px 26px 30px; border-radius: 28px; background: radial-gradient(120% 90% at 50% 0%, #1b1f3e 0%, var(--night) 70%); isolation: isolate; }
+.bias { position: absolute; inset: 6% 8% 14%; border-radius: 40px; filter: blur(46px); opacity: .55; z-index: -1; transition: background .5s ease; }
+.tv { position: relative; width: 100%; max-width: 100%; aspect-ratio: 16 / 9; border-radius: 10px; background: #000; box-shadow: 0 0 0 9px #07070a, 0 0 0 10px #343850, 0 40px 60px -30px rgba(0,0,0,.9); overflow: hidden; }
+.tv:focus-visible { outline: none; box-shadow: 0 0 0 9px #07070a, 0 0 0 12px var(--led), 0 40px 60px -30px rgba(0,0,0,.9); }
+.stand { width: 26%; height: 10px; margin: 16px auto 0; border-radius: 0 0 8px 8px; background: linear-gradient(180deg, #2a2e48, #191b2f); }
+.screen { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; transform-origin: 0 0; font-family: var(--font-display); color: #fff; overflow: hidden; }
+.stage-bar { display: flex; flex-wrap: wrap; gap: 10px 18px; align-items: center; justify-content: center; color: var(--soft); font-size: 13.5px; }
+.roomhint { margin: 10px 0 0; text-align: center; font-size: 12.5px; }
+.btn.sm.wp { font-size: 13.5px; padding: 5px 12px; }
+.toggle-line { display: inline-flex; gap: 10px; align-items: center; cursor: pointer; }
+.stepper { display: inline-flex; gap: 8px; align-items: center; }
+.stepper b { min-width: 16px; text-align: center; color: var(--ink); font-family: var(--font-display); font-weight: 500; font-variant-numeric: tabular-nums; }
+.btn.sm { padding: 3px 11px; border-radius: 9px; font-size: 16px; line-height: 1.4; }
+.btn:disabled { opacity: .4; cursor: default; }
+
+.presets { display: flex; flex-direction: column; gap: 10px; }
+.presets h2, .panel h2 { margin: 0; font-family: var(--font-display); font-weight: 500; font-size: 17px; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip { border: 1px solid var(--edge); background: var(--wall); border-radius: 999px; padding: 6px 14px; font-family: var(--font-display); font-size: 14px; cursor: pointer; transition: background .15s, border-color .15s; }
+.chip:hover { background: var(--wall-2); }
+.chip.on { background: var(--led); border-color: var(--led); color: var(--led-ink); font-weight: 500; }
+
+.checks { display: flex; flex-direction: column; gap: 6px; }
+.check { display: grid; grid-template-columns: 9px minmax(0, 1fr); gap: 10px; align-items: baseline; font-size: 13.5px; padding: 9px 12px; border-radius: 10px; background: var(--wall); }
+.check i { width: 8px; height: 8px; border-radius: 50%; transform: translateY(-1px); }
+.check.warn i { background: var(--warn); } .check.bad i { background: var(--bad); } .check.info i { background: #8fb4ff; } .check.ok i { background: var(--ok); }
+
+/* The settings list */
+.editor { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+.editor-top { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; display: flex; flex-direction: column; gap: 12px; padding: 14px 0 12px; background: var(--night); box-shadow: 0 10px 14px -12px rgba(0,0,0,.6); }
+.searchrow { display: flex; gap: 10px; align-items: center; }
+.search { flex: 1; min-width: 0; background: var(--wall); border: 1px solid var(--edge); border-radius: 14px; padding: 11px 16px; font-size: 15px; }
+.search::placeholder { color: var(--faint); }
+.btn { border: 1px solid var(--edge); background: var(--wall); border-radius: 12px; padding: 10px 16px; font-family: var(--font-display); font-weight: 500; font-size: 14.5px; cursor: pointer; white-space: nowrap; transition: background .15s; }
+.btn:hover { background: var(--wall-2); }
+.btn.primary { background: var(--led); border-color: var(--led); color: var(--led-ink); }
+.btn.primary:hover { background: #ffc46e; }
+.tabs { display: flex; flex-wrap: wrap; gap: 4px 4px; }
+.tab { flex: none; border: 0; background: transparent; color: var(--soft); border-radius: 10px; padding: 6px 11px; font-family: var(--font-display); font-size: 14.5px; cursor: pointer; display: inline-flex; gap: 7px; align-items: center; }
+.tab:hover { background: var(--glass); color: var(--ink); }
+.tab.on { background: var(--glass); color: var(--ink); box-shadow: inset 0 0 0 1px var(--glass-rim); }
+.tab .n { min-width: 18px; height: 18px; border-radius: 9px; background: var(--led); color: var(--led-ink); font-size: 11.5px; font-weight: 600; display: inline-flex; align-items: center; justify-content: center; padding: 0 5px; }
+
+.section-intro { color: var(--soft); font-size: 14px; margin: 2px 4px 0; max-width: 64ch; }
+.list { display: flex; flex-direction: column; gap: 4px; }
+.group-title { margin: 16px 4px 4px; font-family: var(--font-display); font-weight: 400; font-size: 20px; }
+.row { position: relative; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 18px; padding: 14px 16px 14px 20px; border-radius: 16px; align-items: center; transition: background .15s, box-shadow .15s; }
+.row:hover, .row:focus-within { background: var(--glass); box-shadow: inset 0 1px 0 rgba(255,255,255,.08), inset 0 0 0 1px rgba(255,255,255,.08); }
+.row.changed::before { content: ""; position: absolute; left: 7px; top: 22px; width: 6px; height: 6px; border-radius: 50%; background: var(--led); }
+.row .what { min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+.row .label { font-family: var(--font-display); font-size: 16.5px; font-weight: 500; line-height: 1.25; }
+.row .help { color: var(--soft); font-size: 13.5px; line-height: 1.45; max-width: 60ch; }
+.row .meta { display: flex; flex-wrap: wrap; gap: 6px 12px; align-items: center; font-size: 12.5px; color: var(--faint); }
+.row .meta .key { font-family: var(--font-code); font-size: 12px; color: var(--faint); background: none; padding: 0; }
+.row.changed .meta .key { color: var(--led); }
+.row .meta .flag { color: var(--faint); }
+.row .reset { border: 0; background: none; color: var(--soft); font-size: 12.5px; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; padding: 0; }
+.row .reset:hover { color: var(--ink); }
+.row .ctl { display: flex; gap: 8px; align-items: center; justify-content: flex-end; flex-wrap: wrap; }
+.row .ctl.wide { grid-column: 1 / -1; justify-content: stretch; }
+.row .err { grid-column: 1 / -1; color: var(--bad); font-size: 13px; }
+
+.switch { position: relative; width: 48px; height: 28px; flex: none; }
+.switch input { position: absolute; inset: 0; opacity: 0; margin: 0; cursor: pointer; }
+.switch span { position: absolute; inset: 0; border-radius: 14px; background: #343859; transition: background .15s; pointer-events: none; }
+.switch span::after { content: ""; position: absolute; left: 4px; top: 4px; width: 20px; height: 20px; border-radius: 50%; background: #c9cce0; transition: transform .18s cubic-bezier(.3,1.4,.5,1); }
+.switch input:checked + span { background: var(--led); }
+.switch input:checked + span::after { transform: translateX(20px); background: #fff; }
+.switch input:focus-visible + span { outline: 2px solid var(--led); outline-offset: 2px; }
+.seg { display: inline-flex; background: var(--wall); border: 1px solid var(--edge); border-radius: 12px; padding: 3px; gap: 2px; }
+.seg button { border: 0; background: none; border-radius: 9px; padding: 6px 12px; font-family: var(--font-display); font-size: 14px; color: var(--soft); cursor: pointer; }
+.seg button.on { background: var(--ink); color: var(--night); font-weight: 500; }
+.range { display: flex; align-items: center; gap: 10px; }
+input[type="range"] { width: 150px; accent-color: var(--led); }
+.num { width: 70px; background: var(--wall); border: 1px solid var(--edge); border-radius: 10px; padding: 6px 8px; font-family: var(--font-code); font-size: 13px; text-align: right; font-variant-numeric: tabular-nums; }
+.txt { width: 240px; max-width: 100%; background: var(--wall); border: 1px solid var(--edge); border-radius: 10px; padding: 7px 11px; font-size: 14px; }
+.colour { display: flex; gap: 8px; align-items: center; }
+input[type="color"] { width: 38px; height: 34px; border: 1px solid var(--edge); border-radius: 10px; background: var(--wall); padding: 3px; cursor: pointer; }
+textarea.list-in { width: 100%; min-height: 78px; background: var(--wall); border: 1px solid var(--edge); border-radius: 12px; padding: 9px 12px; font-family: var(--font-code); font-size: 12.5px; line-height: 1.6; resize: vertical; }
+.empty { padding: 26px 18px; color: var(--soft); text-align: left; }
+
+/* config.json and the steps */
+.panel { background: var(--wall); border-radius: 20px; padding: 20px; display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+.panel-head { display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: center; justify-content: space-between; }
+.panel-head p { margin: 2px 0 0; color: var(--soft); font-size: 13.5px; }
+.json { margin: 0; background: #0e1022; border-radius: 14px; padding: 16px 18px; font-family: var(--font-code); font-size: 13px; line-height: 1.65; color: #d8dbec; overflow: auto; max-height: 420px; }
+.json .k { color: #9fb8ff; } .json .s { color: #b5e8c4; } .json .v { color: #ffcf8a; } .json .c { color: var(--led); }
+.json .ch { background: rgba(255,181,71,.12); border-radius: 4px; }
+.steps { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 14px; counter-reset: s; }
+.steps li { counter-increment: s; display: grid; grid-template-columns: 34px minmax(0, 1fr); gap: 12px; }
+.steps li::before { content: counter(s); width: 30px; height: 30px; border-radius: 50%; background: var(--wall-2); color: var(--led); display: flex; align-items: center; justify-content: center; font-family: var(--font-display); font-weight: 500; }
+.steps li div { min-width: 0; display: flex; flex-direction: column; gap: 6px; }
+.steps b { font-family: var(--font-display); font-weight: 500; font-size: 16px; }
+.steps p { margin: 0; color: var(--soft); font-size: 14px; }
+.cmd { margin: 0; background: #0e1022; border-radius: 10px; padding: 10px 12px; font-family: var(--font-code); font-size: 12.5px; color: #d8dbec; overflow-x: auto; white-space: pre; }
+.import textarea { width: 100%; min-height: 100px; background: #0e1022; border: 1px solid var(--edge); border-radius: 12px; padding: 10px 12px; font-family: var(--font-code); font-size: 12.5px; resize: vertical; }
+.msg { font-size: 13.5px; color: var(--soft); }
+.msg.err { color: var(--bad); }
+.foot { margin: 4px 0 0; color: var(--faint); font-size: 13px; }
+
+/* Wide and tall enough: the left side is pinned and sized to the window, and never scrolls as a whole.
+   The TV shrinks so the card keeps about 300px; only the code box and the steps scroll inside the card. */
+@media (min-width: 1101px) and (min-height: 700px) {
+  body { padding-bottom: 18px; }
+  #copyTop { display: none; }
+  .stage { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 18px); height: calc(100vh - 36px); }
+  .tvblock { flex: none; }
+  .room { width: min(100%, calc((100vh - 600px) * 1.78 + 40px)); min-width: 360px; margin: 0 auto; padding: 20px 20px 14px; }
+  .card { flex: 1; min-height: 0; }
+  .pane { flex: 1; min-height: 0; overflow-y: auto; }
+  .pane[data-p="json"] { overflow: hidden; }
+  .pane[data-p="json"] .json { flex: 1; min-height: 0; max-height: none; }
+}
+/* Narrow: one column in working order: the TV, the settings, then the result. */
+@media (max-width: 1100px) {
+  .studio { grid-template-columns: minmax(0, 1fr); }
+  .stage { display: contents; }
+  .tvblock { order: 1; }
+  .editor { order: 2; }
+  .card { order: 3; }
+  .editor-top { position: static; box-shadow: none; }
+}
+@media (max-width: 560px) {
+  .row { grid-template-columns: minmax(0, 1fr); padding-left: 18px; }
+  .row .ctl { justify-content: flex-start; }
+  .room { padding: 20px 12px 18px; border-radius: 20px; }
+  input[type="range"] { width: 120px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition: none !important; }
+}
+
+/* ---------- The TV drawing (1920×1080 canvas) ---------- */
+.L { position: absolute; inset: 0; pointer-events: none; }
+.greet { position: absolute; left: 123px; top: 52px; font-size: 26px; letter-spacing: .26em; color: rgba(255,255,255,.66); text-transform: uppercase; white-space: nowrap; }
+.clock { position: absolute; left: 108px; top: 92px; font-size: 112px; font-weight: 200; letter-spacing: -.02em; line-height: 1; }
+.dates { position: absolute; display: flex; flex-direction: column; gap: 10px; font-size: 30px; letter-spacing: .2em; color: rgba(255,255,255,.62); text-transform: uppercase; white-space: nowrap; }
+.dates .sub { font-size: 23px; letter-spacing: .16em; color: rgba(255,255,255,.5); }
+.dates.white, .dates.white .sub { color: #fff; }
+.vline { position: absolute; width: 2px; height: 54px; background: rgba(255,255,255,.22); }
+.vline.white { background: #fff; }
+.stats { position: absolute; left: 123px; font: 400 25px/1 "JetBrains Mono", monospace; color: rgba(255,255,255,.55); display: flex; gap: 34px; white-space: nowrap; }
+.stats b { color: #fff; font-weight: 500; }
+.pills { position: absolute; right: 113px; top: 118px; display: flex; gap: 22px; align-items: center; }
+.pill { height: 84px; border-radius: 42px; padding: 0 36px; display: flex; align-items: center; gap: 20px; font-size: 32px; font-weight: 500; color: #fff; background: rgba(255,255,255,.07); border: 2px solid rgba(255,255,255,.14); white-space: nowrap; }
+.pill svg { width: 38px; height: 38px; flex: none; }
+.pill.round { width: 84px; padding: 0; justify-content: center; }
+.pill .lbl { overflow: hidden; text-overflow: ellipsis; }
+.pill .badge { font-size: 24px; background: #22c55e; color: #052e16; border-radius: 20px; padding: 3px 14px; display: flex; gap: 6px; align-items: center; }
+.pill.vpn { background: #16a34a; border-color: #22c55e; }
+.pill.logo { width: 84px; padding: 0; justify-content: center; font-size: 34px; font-weight: 600; background: #2a2f3a; }
+.gearc { position: absolute; left: 918px; top: 92px; width: 84px; height: 84px; border-radius: 50%; background: rgba(255,255,255,.07); border: 2px solid rgba(255,255,255,.16); display: flex; align-items: center; justify-content: center; }
+.gearc svg { width: 40px; height: 40px; }
+.hero { position: absolute; left: 136px; font-weight: 300; letter-spacing: -.01em; line-height: 1.1; white-space: nowrap; }
+.band { position: absolute; border-radius: 50px; border: 2px solid rgba(255,255,255,.07); }
+.tile { position: absolute; border-radius: 18px; cursor: pointer; }
+.tile .art { position: absolute; inset: 0; border-radius: 18px; overflow: hidden; display: flex; align-items: center; justify-content: center; }
+.tile .nm { position: absolute; left: -30px; right: -30px; text-align: center; font-weight: 500; white-space: nowrap; opacity: 0; }
+.tile.focus .nm { opacity: 1; }
+.tile.dimname .nm { opacity: .5; }
+.tile.focus.dimname .nm { opacity: 1; }
+.ring { position: absolute; inset: -12px; border-radius: 26px; opacity: 0; pointer-events: none; }
+.tile.focus .ring { opacity: 1; }
+.ucard { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; }
+.ucard i { width: 33%; aspect-ratio: 1; border-radius: 24%; display: block; box-shadow: 0 10px 24px rgba(0,0,0,.35); }
+.lastop { position: absolute; left: 140px; font-size: 26px; letter-spacing: .2em; text-transform: uppercase; color: rgba(255,255,255,.6); }
+.dots { position: absolute; left: 142px; display: flex; gap: 14px; }
+.dots b { width: 14px; height: 14px; border-radius: 50%; background: rgba(255,255,255,.3); }
+.dots b.on { width: 42px; border-radius: 7px; background: #fff; }
+.wpimg { position: absolute; inset: 0; background-size: cover; background-position: center; }
+.wpnote { position: absolute; right: 60px; bottom: 40px; font: 400 24px/1.35 "Atkinson Hyperlegible", sans-serif; color: rgba(255,255,255,.4); text-align: right; }
+.petal { position: absolute; width: 22px; height: 14px; border-radius: 50% 50% 50% 0; background: #f59e0b; opacity: .7; }
+.banner { display: flex; align-items: center; gap: 18px; width: 280px; justify-content: center; flex: none; }
+.banner .mark { width: 62px; height: 62px; border-radius: 16px; flex: none; }
+.banner .word { font-size: 38px; font-weight: 500; line-height: 1; white-space: nowrap; }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header class="masthead">
+    <div class="brand">
+      <h1><b>Theme Studio</b> for Clean Your TV</h1>
+      <p>Design a Home screen for the Clean Your TV launcher. Change any setting and watch the TV; the finished <code>config.json</code> is under it, ready to copy.</p>
+    </div>
+    <nav class="links" aria-label="Project links">
+      <a href="https://github.com/Gathin23/cleanyourtv" target="_blank" rel="noopener">The project on GitHub</a>
+      <a href="https://github.com/Gathin23/cleanyourtv/blob/main/themes/README.md" target="_blank" rel="noopener">Theme reference</a>
+    </nav>
+  </header>
+
+  <div class="studio">
+    <section class="stage" aria-label="Preview and result">
+      <div class="tvblock">
+        <div class="room">
+          <div class="bias" id="bias"></div>
+          <div class="tv" id="tv" tabindex="0" aria-label="Home screen preview. Use the left and right arrow keys to move along the dock."><div class="screen" id="screen"></div></div>
+          <div class="stand"></div>
+          <p class="hint roomhint">Made-up apps. Click a tile, or focus the TV and use the arrow keys.</p>
+        </div>
+        <div class="stage-bar">
+          <span style="display:flex;gap:10px 16px;flex-wrap:wrap;align-items:center">
+            <span class="stepper" role="group" aria-label="Dock slots" title="How many slots the dock has. This is Apps per row (columns), so the grid changes width too. Written to config.json."><span>Dock slots</span><button type="button" class="btn sm" id="colMinus" aria-label="One fewer dock slot">&minus;</button><b id="colN">4</b><button type="button" class="btn sm" id="colPlus" aria-label="One more dock slot">+</button></span>
+            <span class="stepper" role="group" aria-label="Dock apps in the preview" id="dockStep"><span>Dock apps</span><button type="button" class="btn sm" id="dockMinus" aria-label="One fewer dock app">&minus;</button><b id="dockN">5</b><button type="button" class="btn sm" id="dockPlus" aria-label="One more dock app">+</button></span>
+            <label class="toggle-line"><span class="switch"><input type="checkbox" id="vpnUp"><span></span></span>VPN connected</label>
+            <label class="btn sm wp" for="wpFile">Try a wallpaper</label>
+            <input type="file" id="wpFile" accept="image/*" hidden>
+          </span>
+        </div>
+      </div>
+
+      <section class="card" aria-label="Result">
+        <div class="card-tabs" role="tablist" aria-label="Result">
+          <button type="button" role="tab" data-p="json" class="on" aria-selected="true">config.json</button>
+          <button type="button" role="tab" data-p="use" aria-selected="false">Put it on your TV</button>
+          <button type="button" role="tab" data-p="checks" aria-selected="false">Checks <span class="n" id="checksN" hidden></span></button>
+        </div>
+
+        <div class="pane" data-p="json" role="tabpanel">
+          <div class="pane-head">
+            <p id="outNote"></p>
+            <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+              <div class="seg" role="group" aria-label="What to include">
+                <button type="button" data-mode="changes" class="on">Only my changes</button>
+                <button type="button" data-mode="full">Every setting</button>
+              </div>
+              <button class="btn primary" type="button" id="copyBtn">Copy</button>
+            </div>
+          </div>
+          <pre class="json" id="out"></pre>
+        </div>
+
+        <div class="pane" data-p="use" role="tabpanel" hidden>
+          <ol class="steps">
+            <li><div><b>Save the file</b><p>Make a folder for your theme, for example <code>my-theme</code>, and save the config.json text in it as <code>config.json</code>. A background picture goes beside it as <code>wallpaper.jpg</code>: 1920&times;1080, dark, under about 300 KB.</p></div></li>
+            <li><div><b>Send it to the TV</b><p>With ADB on and the cleanyourtv repo on your computer, run this from the repo folder. Home restarts with the theme.</p>
+              <pre class="cmd">TV_HOST=&lt;tv ip&gt; tools/theme.sh path/to/my-theme</pre>
+              <p>On Windows:</p>
+              <pre class="cmd">powershell -ExecutionPolicy Bypass -File tools\theme.ps1 -TvHost &lt;tv ip&gt; path\to\my-theme</pre></div></li>
+            <li><div><b>Go back any time</b><p>This returns the launcher to its built-in look.</p><pre class="cmd">TV_HOST=&lt;tv ip&gt; tools/theme.sh --reset</pre></div></li>
+          </ol>
+          <p class="foot">Not in the studio, because a theme can't set them: <code>icon_tiles</code>, <code>settings_fallback_components</code>, <code>settings_key_scancodes</code>, <code>latitude</code> and <code>longitude</code> live in the launcher's <code>config.xml</code> and need a rebuild. <code>race_calendar</code> is written by <code>tools/race_calendar.py</code>. Want your theme in the project? Read <a href="https://github.com/Gathin23/cleanyourtv/blob/main/themes/CREATE_A_THEME.md" target="_blank" rel="noopener">Create a theme</a>: it needs a screenshot from a real TV.</p>
+        </div>
+
+        <div class="pane" data-p="checks" role="tabpanel" hidden>
+          <div class="checks" id="checks" aria-live="polite"></div>
+        </div>
+      </section>
+    </section>
+
+    <section class="editor" aria-label="Settings">
+      <div class="presets">
+        <h2>Start from a look</h2>
+        <div class="chips" id="presets"></div>
+        <div class="ownrow">
+          <button class="btn" type="button" id="loadOpen" aria-expanded="false" aria-controls="loadBox">Load my own config.json</button>
+          <button class="btn startover" type="button">Start over</button>
+        </div>
+        <div class="loadbox" id="loadBox" hidden>
+          <p>Paste your theme's config.json, or choose the file. Its settings appear below, ready to edit; anything it leaves out stays at the built-in value.</p>
+          <textarea id="importText" spellcheck="false" aria-label="Paste a config.json" placeholder='{ "glass_style": "rim", "dock_band": false }'></textarea>
+          <div class="ownrow">
+            <button class="btn primary" type="button" id="importBtn">Load it</button>
+            <label class="btn" for="importFile">Choose a file</label>
+            <input type="file" id="importFile" accept=".json,application/json,text/plain" hidden>
+          </div>
+          <p class="msg" id="importMsg" aria-live="polite"></p>
+        </div>
+      </div>
+      <div class="editor-top">
+        <div class="searchrow">
+          <input class="search" id="search" type="search" placeholder="Search settings: glow, wallpaper, clock&hellip;" autocomplete="off" aria-label="Search settings">
+          <button class="btn primary" type="button" id="copyTop">Copy config.json</button>
+        </div>
+        <div class="tabs" id="tabs" role="tablist" aria-label="Setting groups"></div>
+      </div>
+      <p class="section-intro" id="sectionIntro"></p>
+      <div class="list" id="list"></div>
+    </section>
+  </div>
+</div>
+
+<script>
+(function () {
+  "use strict";
+  // The launcher's built-in values: launcher/app/src/main/res/values/config.xml and the theme reader in Config.java.
+  var DEF = {
+    background_color: "#000000", sky_intensity: 0, ambient_glow: true, glow_style: "radial", app_glow: false, glass_style: "glass", fade_rows: false,
+    wallpaper: true, wallpaper_dim: 0, wallpaper_true_color: false, wallpaper_rotation_minutes: 0, wallpaper_order: "shuffle", wallpaper_captions: false, wallpaper_moods: null,
+    columns: 4, rows_below_dock: 0, dock_title: true, dock_row: true, dock_band: true, dock_glass: false, dock_opacity: 100, dock_even_padding: false,
+    fill_dock: true, single_row: false, dock_band_all: false, always_show_names: false, uniform_tiles: false,
+    cinematic_home: false, cinematic_dots: true, cinematic_white_focus: false, cinematic_scrim: 100, cinematic_art: 50,
+    show_greeting: true, greeting_name: "", header_white: false, date_below_clock: false, show_stats: false, shamsi_date: false, lunar_date: false, lunar_utc_offset: null, locale: "",
+    show_inputs_pill: true, icon_only_inputs: false, show_network_pill: true, icon_only_buttons: false, wifi_label_width: 0, wifi_status_color: false, wifi_status_warnings: false,
+    vpn_app: "", vpn_pill: false, top_menu: false, launcher_settings_button: false, reorder_button: false, library_button: false, top_bar_apps: [],
+    animations: true, focus_overshoot: true, advanced_effects: false, reduced_motion: false,
+    dock_apps: [], hidden_apps: [], app_labels: [], app_banners: [], launch_actions: [], app_library: false, show_library_pill: true, app_library_selection: false,
+    library_ok_opens: false, library_apps: [], tile_menu: false, show_home_settings_shortcut: false, module_cards: true,
+    home_idle_clock_minutes: 0, clock_wallpaper: false, clock_wallpaper_dim: 50, clock_glow: true,
+    app_keys: [], settings_key_keycodes: [], settings_key_panel: false, input_key_keycodes: [], key_filter: true, gamepad_passthrough: false, consume_volume_keys: false,
+    restore_key_services: false, home_long_press_home: false, stock_home_redirect: "",
+    live_tv_package: "", live_tv_action: "", live_tv_input_id: "", boot_to_live_tv: false, open_on_start_choice: false, power_on_home: false, power_on_home_always: false,
+    inputs_connected_only: false, handle_view_inputs: false, input_action: "", input_uri_scheme: "", input_sources: [], source_panel_service: "", source_panel_action: "", source_panel_extra: "", coocaa_sources: false,
+    festival: "", festival_until: "", greeting: "", accent_color: ""
+  };
+
+  // t: b on/off, i number, e choice, c colour, s text, d date, l list, n list of numbers, j JSON object.
+  // draw: shown in the preview. own: belongs to one person's TV, so it goes into config.json only when set.
+  var GROUPS = [
+    { id: "look", title: "Colour and light", intro: "The background and the light around the focused app.", keys: [
+      { k: "background_color", t: "c", draw: 1, l: "Background colour", h: "The colour behind everything, when there's no wallpaper or sky." },
+      { k: "sky_intensity", t: "i", min: 0, max: 100, draw: 1, l: "Time-of-day sky", h: "A dark gradient that changes with the clock. 0 turns it off." },
+      { k: "ambient_glow", t: "b", draw: 1, l: "Glow behind the dock", h: "Light in the focused app's colour. Turn it off for a calm photo background." },
+      { k: "glow_style", t: "e", o: [["radial", "Pool"], ["horizon", "From the top"]], draw: 1, l: "Glow shape", h: "A pool of light behind the dock, or colour washing down from the top edge." },
+      { k: "app_glow", t: "b", draw: 1, l: "Focus glows in the app's colour", h: "The highlight takes the colour of whichever app is focused, on every tile." },
+      { k: "glass_style", t: "e", o: [["glass", "Glass"], ["rim", "Rim"], ["halo", "Halo"]], draw: 1, l: "Focus highlight", h: "Glass is a translucent slab with a sheen. Rim is a thin outline only. Halo is the outline with a soft glow." },
+      { k: "fade_rows", t: "b", l: "Fade rows under the clock", h: "Rows fade out as they scroll up, instead of stopping at a hard line. Uses about 6 MB of graphics memory." }
+    ]},
+    { id: "wall", title: "Wallpaper", intro: "A picture behind Home: wallpaper.jpg beside config.json, or a wallpapers folder for a collection.", keys: [
+      { k: "wallpaper", t: "b", draw: 1, l: "Show the wallpaper", h: "Use the theme's picture. Try one with the button under the TV." },
+      { k: "wallpaper_dim", t: "i", min: 0, max: 90, unit: "%", draw: 1, l: "Darken the wallpaper", h: "A black shade over the picture, so text stays readable." },
+      { k: "wallpaper_true_color", t: "b", l: "Full-colour decoding", h: "Stops dark gradients from banding. Uses 8 MB instead of 4, so only for TVs with 2 GB of memory or more." },
+      { k: "wallpaper_rotation_minutes", t: "i", min: 0, max: 1440, unit: "min", l: "Change picture every", h: "Rotate through the wallpapers folder. 0 keeps one picture." },
+      { k: "wallpaper_order", t: "e", o: [["shuffle", "Shuffle"], ["sequential", "In order"]], l: "Rotation order", h: "Random without repeating the current picture, or by file name." },
+      { k: "wallpaper_captions", t: "b", l: "Picture captions", h: "Show each picture's name under the buttons, from wallpapers/captions.txt." },
+      { k: "wallpaper_moods", t: "j", l: "Pictures by time of day", h: "Group pictures into morning, evening and night, using file names from the wallpapers folder." }
+    ]},
+    { id: "dock", title: "Dock and grid", intro: "The row of favourite apps at the bottom, and the grid of everything else.", keys: [
+      { k: "columns", t: "i", min: 1, max: 8, draw: 1, l: "Apps per row", h: "Also sets how many apps the dock holds. Tiles shrink from 5 up." },
+      { k: "rows_below_dock", t: "i", min: 0, max: 3, draw: 1, l: "Grid rows in view", h: "How many rows of apps show under the dock. Tiles shrink to fit." },
+      { k: "dock_title", t: "b", draw: 1, l: "Big app name above the dock", h: "The focused dock app's name in large light type." },
+      { k: "dock_row", t: "b", draw: 1, l: "Dock as its own row", h: "Off makes the dock apps simply the first tiles of one grid." },
+      { k: "dock_band", t: "b", draw: 1, l: "Band behind the dock", h: "Off leaves the tiles floating on the background." },
+      { k: "dock_glass", t: "b", draw: 1, l: "Frosted-glass band", h: "A light, frosted band, like the buttons. Suits a wallpaper or the sky." },
+      { k: "dock_opacity", t: "i", min: 30, max: 100, unit: "%", draw: 1, l: "Band opacity", h: "Lower lets the wallpaper show through the band." },
+      { k: "dock_even_padding", t: "b", draw: 1, l: "Even padding in the band", h: "The space around the tiles matches the space between them." },
+      { k: "fill_dock", t: "b", draw: 1, l: "Fill empty dock slots", h: "Use the first grid apps for slots your dock apps leave free. Off leaves them empty." },
+      { k: "single_row", t: "b", draw: 1, l: "Everything in one row", h: "Every app in the dock's row, scrolling sideways, with no grid below." },
+      { k: "dock_band_all", t: "b", draw: 1, l: "Band behind the whole row", h: "With everything in one row, run the band behind all the apps." },
+      { k: "always_show_names", t: "b", draw: 1, l: "Names under every tile", h: "Dimmed until focused. The band grows to hold them." },
+      { k: "uniform_tiles", t: "b", draw: 1, l: "Icon cards instead of banners", h: "Each app as its icon on a card tinted from it, so the row looks even." }
+    ]},
+    { id: "cine", title: "Cinematic shelf", intro: "The top of the screen becomes a stage for the focused dock app.", keys: [
+      { k: "cinematic_home", t: "b", draw: 1, l: "Cinematic shelf", h: "The focused app's softened artwork fills the top in its colour, with a large name and Last opened." },
+      { k: "cinematic_dots", t: "b", draw: 1, l: "Position dots", h: "Dots under the name showing where you are in the dock." },
+      { k: "cinematic_white_focus", t: "b", draw: 1, l: "White focus on the dock", h: "Keep the highlight white instead of the app's colour." },
+      { k: "cinematic_scrim", t: "i", min: 0, max: 100, unit: "%", draw: 1, l: "Shade behind the name", h: "Lower lets a wallpaper show through." },
+      { k: "cinematic_art", t: "i", min: 0, max: 100, unit: "%", draw: 1, l: "Artwork strength", h: "0 hides the artwork and leaves the wallpaper uncovered." }
+    ]},
+    { id: "head", title: "Clock and greeting", intro: "The top-left corner.", keys: [
+      { k: "show_greeting", t: "b", draw: 1, l: "Greeting", h: "Good morning, Good evening and so on, above the clock." },
+      { k: "greeting_name", t: "s", draw: 1, l: "Name in the greeting", h: "Adds a name: Good evening, Sam.", ph: "Sam" },
+      { k: "header_white", t: "b", draw: 1, l: "Bright date", h: "The date and the divider in full white instead of dimmed." },
+      { k: "date_below_clock", t: "b", draw: 1, l: "Date under the clock", h: "Gives the buttons more room on the right." },
+      { k: "show_stats", t: "b", draw: 1, l: "System line", h: "CPU, free memory and free storage under the clock." },
+      { k: "shamsi_date", t: "b", draw: 1, l: "Solar Hijri date", h: "Shown above the Gregorian date." },
+      { k: "lunar_date", t: "b", draw: 1, l: "Lunar date", h: "The lunisolar date under the Gregorian one, with the zodiac year." },
+      { k: "lunar_utc_offset", t: "i", min: 0, max: 14, opt: 1, l: "Lunar calendar zone", h: "7 Vietnamese, 8 Chinese, 9 Korean. Left alone, it follows the TV's language." },
+      { k: "locale", t: "s", l: "Launcher language", h: "A language tag such as de or pt-BR, for TVs whose menu lacks your language. Empty follows the TV.", ph: "pt-BR" }
+    ]},
+    { id: "bar", title: "Top bar", intro: "The buttons in the top-right corner.", keys: [
+      { k: "show_inputs_pill", t: "b", draw: 1, l: "Inputs button", h: "Switches between HDMI ports and Live TV." },
+      { k: "icon_only_inputs", t: "b", draw: 1, l: "Inputs as an icon", h: "A round icon instead of the labelled button." },
+      { k: "show_network_pill", t: "b", draw: 1, l: "Network button", h: "Shows Wi-Fi or Ethernet." },
+      { k: "icon_only_buttons", t: "b", draw: 1, l: "Network and Settings as icons", h: "Round icon buttons instead of labelled ones." },
+      { k: "wifi_label_width", t: "i", min: 0, max: 300, unit: "dp", draw: 1, l: "Keep the network name", h: "With icon buttons, show the network name up to this width. 0 shows the icon only." },
+      { k: "wifi_status_color", t: "b", draw: 1, l: "Green when online", h: "The network icon turns green while the TV has internet." },
+      { k: "wifi_status_warnings", t: "b", l: "Orange and red warnings", h: "With green when online: orange without internet, red when offline." },
+      { k: "vpn_app", t: "s", draw: 1, l: "VPN app", h: "The package of your VPN app, opened from the network or VPN button.", ph: "com.wireguard.android" },
+      { k: "vpn_pill", t: "b", draw: 1, l: "Separate VPN button", h: "Green while the VPN is up, red VPN off while it isn't. Use the switch under the TV to see both." },
+      { k: "top_menu", t: "b", draw: 1, l: "One menu button", h: "Inputs, network and Settings folded into one gear in the middle." },
+      { k: "launcher_settings_button", t: "b", draw: 1, l: "Settings opens the launcher's settings", h: "Instead of the TV's own Settings." },
+      { k: "reorder_button", t: "b", draw: 1, l: "Reorder button", h: "A button for moving apps around. Reordering is always in the Settings button's long-press menu too." },
+      { k: "library_button", t: "b", draw: 1, l: "App library button", h: "A round button beside Settings. Needs the app library." },
+      { k: "top_bar_apps", t: "l", draw: 1, own: 1, l: "Apps in the top bar", h: "Round logo buttons for these apps, one package name per line. They leave the grid." }
+    ]},
+    { id: "motion", title: "Motion", intro: "How focus moves between tiles.", keys: [
+      { k: "animations", t: "b", draw: 1, l: "Animations", h: "Focus, glass, title and tile movement." },
+      { k: "focus_overshoot", t: "b", draw: 1, l: "Springy focus", h: "The highlight swings a little past each tile before settling. Off glides straight there." },
+      { k: "advanced_effects", t: "b", draw: 1, l: "Extra effects", h: "A lifted tile, icon zoom, smoother colour changes and app opening effects." },
+      { k: "reduced_motion", t: "b", draw: 1, l: "Calm motion", h: "Every movement under 90 ms, no bounce. For slow TVs." }
+    ]},
+    { id: "apps", title: "Apps and library", intro: "Which apps appear, and how. Package names go one per line.", keys: [
+      { k: "dock_apps", t: "l", own: 1, l: "Dock apps", h: "Package names, in order. Leave empty to keep the dock your launcher already has.", ph: "com.netflix.ninja\ncom.google.android.youtube.tv" },
+      { k: "hidden_apps", t: "l", own: 1, l: "Hidden apps", h: "Never shown as tiles." },
+      { k: "app_labels", t: "l", own: 1, l: "Rename tiles", h: "package=Name, one per line.", ph: "com.telekom.onetv.tv.pl=TV" },
+      { k: "app_banners", t: "l", own: 1, l: "Built-in tile artwork", h: "package=banner_name, using a banner bundled with the launcher." },
+      { k: "launch_actions", t: "l", own: 1, l: "Open a screen of an app", h: "package=action, for example a TV app's programme guide." },
+      { k: "app_library", t: "b", l: "App library", h: "A page with every installed app, where you add apps to Home or take them off." },
+      { k: "show_library_pill", t: "b", l: "Library entry after the last row", h: "Turn off when the top-bar library button is the way in." },
+      { k: "app_library_selection", t: "b", l: "Tick apps in the library", h: "OK toggles a checkmark instead of opening the app." },
+      { k: "library_ok_opens", t: "b", l: "Open any app from the library", h: "OK opens every app there, not only the ones on Home." },
+      { k: "library_apps", t: "l", own: 1, l: "Pre-added library apps", h: "Packages that start out on Home as if added from the library." },
+      { k: "tile_menu", t: "b", l: "Tile menu", h: "Hold OK or press Menu on a tile for Move, Remove and App info." },
+      { k: "show_home_settings_shortcut", t: "b", l: "Default-home tile", h: "A tile that opens the TV's choice of Home app, where it has one." },
+      { k: "module_cards", t: "b", l: "Module cards", h: "Look for add-on widget apps and offer to show them." }
+    ]},
+    { id: "saver", title: "Clock screensaver", intro: "A moving clock when Home sits untouched.", keys: [
+      { k: "home_idle_clock_minutes", t: "i", min: 0, max: 1440, unit: "min", l: "Start the clock after", h: "Minutes of no remote presses on Home. 0 turns it off." },
+      { k: "clock_wallpaper", t: "b", l: "Clock over the wallpaper", h: "Instead of black with a coloured glow." },
+      { k: "clock_wallpaper_dim", t: "i", min: 0, max: 90, unit: "%", l: "Darken it behind the clock", h: "How dark the wallpaper is behind the clock." },
+      { k: "clock_glow", t: "b", l: "Coloured glow", h: "Off leaves the clock on plain black, kinder to OLED screens." }
+    ]},
+    { id: "keys", title: "Remote buttons", intro: "These belong to your TV and remote, so they go into config.json only when you set them. Most need the launcher's key helper, switched on when it is installed.", keys: [
+      { k: "app_keys", t: "l", own: 1, l: "Buttons that open apps", h: "keycode:package, one per line. hold: for a long press, an action word such as mute instead of a package.", ph: "190:com.google.android.youtube.tv\nhold:190:com.netflix.ninja" },
+      { k: "settings_key_keycodes", t: "n", own: 1, l: "Settings buttons", h: "Keycodes that open Settings. TCL Google TV remotes send 83." },
+      { k: "settings_key_panel", t: "b", own: 1, l: "Quick-settings panel", h: "Those buttons open a small panel instead of the full Settings." },
+      { k: "input_key_keycodes", t: "n", own: 1, l: "Extra Input buttons", h: "Keycodes that open the input list." },
+      { k: "key_filter", t: "b", own: 1, l: "Key helper filtering", h: "Off keeps the helper on but stops it catching keys: button mappings stop, held volume always repeats." },
+      { k: "gamepad_passthrough", t: "b", own: 1, l: "Let game controllers through", h: "Stop catching keys while a controller is connected." },
+      { k: "consume_volume_keys", t: "b", own: 1, l: "Fix double volume steps", h: "For firmware where one volume press moves two steps." },
+      { k: "restore_key_services", t: "b", own: 1, l: "Bring the key helper back", h: "After a force stop, Home switches the helpers on again. Needs RESTORE_KEY_SERVICES=1 at install." },
+      { k: "home_long_press_home", t: "b", own: 1, l: "Long Home press opens Home", h: "For remotes where a firm Home press does nothing. Can stop held keys repeating." },
+      { k: "stock_home_redirect", t: "s", own: 1, l: "Send the old launcher back", h: "For firmware that turns its own launcher back on: its package name here." }
+    ]},
+    { id: "tv", title: "Live TV and inputs", intro: "These belong to your TV, so they go into config.json only when you set them.", keys: [
+      { k: "live_tv_package", t: "s", own: 1, l: "Live TV app", h: "The TV's tuner app, listed last in the Inputs menu.", ph: "com.tcl.tv" },
+      { k: "live_tv_action", t: "s", own: 1, l: "Live TV start action", h: "Only for a Live TV app with no normal entry." },
+      { k: "live_tv_input_id", t: "s", own: 1, l: "Exact tuner input", h: "Opens that tuner's channels from the Live TV row." },
+      { k: "boot_to_live_tv", t: "b", own: 1, l: "Start on Live TV", h: "Open Live TV the first time Home appears after the TV starts." },
+      { k: "open_on_start_choice", t: "b", own: 1, l: "Choose an app to start on", h: "Adds an Open on start row to the launcher's settings." },
+      { k: "power_on_home", t: "b", own: 1, l: "Home instead of firmware Live TV", h: "For TVs that open Live TV by themselves at power-on. Needs HomeKeyService." },
+      { k: "power_on_home_always", t: "b", own: 1, l: "Always Home at power-on", h: "Whatever the TV put in front. Needs HomeKeyService." },
+      { k: "inputs_connected_only", t: "b", own: 1, l: "Only connected inputs", h: "Fold empty HDMI ports behind More inputs." },
+      { k: "handle_view_inputs", t: "b", own: 1, l: "Answer the system input switcher", h: "For TVs whose stock launcher was the only one that did." },
+      { k: "input_action", t: "s", own: 1, l: "HDMI open action", h: "For sets where nothing else opens an HDMI input (XGIMI)." },
+      { k: "input_uri_scheme", t: "s", own: 1, l: "HDMI address scheme", h: "Instead of content:// (YaOS)." },
+      { k: "input_sources", t: "l", own: 1, l: "Vendor source numbers", h: "HW<n>=<number>, one per line." },
+      { k: "source_panel_service", t: "s", own: 1, l: "Source panel service", h: "The TV's own source panel, for sets with no input framework." },
+      { k: "source_panel_action", t: "s", own: 1, l: "Source panel action", h: "Or the activity action that opens it." },
+      { k: "source_panel_extra", t: "s", own: 1, l: "Source panel extra", h: "One number sent with it, name=value." },
+      { k: "coocaa_sources", t: "b", own: 1, l: "Coocaa OS sources", h: "Skyworth China firmware only." }
+    ]},
+    { id: "fest", title: "Festive skin", intro: "Seasonal decorations: a diya for Wi-Fi, a bell for Inputs, a marigold for Settings, and a petal shower on the day's first Home.", keys: [
+      { k: "festival", t: "s", draw: 1, l: "Festival", h: "dussehra and diwali come with their own greeting. Empty turns the skin off.", ph: "diwali" },
+      { k: "festival_until", t: "d", l: "Last day", h: "The skin turns itself off after this date." },
+      { k: "greeting", t: "s", draw: 1, l: "Festive greeting", h: "Replaces the time-of-day greeting while the skin is on.", ph: "Happy holidays" },
+      { k: "accent_color", t: "c", draw: 1, opt: 1, l: "Festive glow colour", h: "Diya gold if not set." }
+    ]}
+  ];
+  var KEYS = {}, ORDER = [];
+  GROUPS.forEach(function (g) { g.keys.forEach(function (d) { d.g = g.id; KEYS[d.k] = d; ORDER.push(d.k); }); });
+  var NOT_THEME = ["icon_tiles", "settings_fallback_components", "settings_key_scancodes", "latitude", "longitude", "race_calendar"];
+
+  var PRESETS = [
+    { name: "Built-in look", cfg: {} },
+    { name: "Noir", cfg: { ambient_glow: false, dock_band: false, glass_style: "rim", focus_overshoot: false, icon_only_buttons: true, icon_only_inputs: true, header_white: true, clock_glow: false } },
+    { name: "Cinema", cfg: { columns: 5, cinematic_home: true, glow_style: "horizon", dock_opacity: 70, wifi_status_color: true } },
+    { name: "Dusk", cfg: { columns: 5, sky_intensity: 70, dock_glass: true, glass_style: "halo", always_show_names: true, date_below_clock: true, wifi_status_color: true } },
+    { name: "Strip", cfg: { single_row: true, dock_band_all: true, uniform_tiles: true } },
+    { name: "Console", cfg: { columns: 5, background_color: "#0B0F14", show_greeting: false, top_menu: true, show_stats: true, rows_below_dock: 2, dock_title: false, wifi_status_color: true, wifi_status_warnings: true, reduced_motion: true } },
+    { name: "Photo wall", cfg: { columns: 5, background_color: "#06080A", wallpaper_true_color: true, wallpaper_dim: 20, dock_opacity: 50, ambient_glow: false, glass_style: "halo", icon_only_buttons: true, focus_overshoot: false } },
+    { name: "Glass", cfg: { background_color: "#090C14", cinematic_home: true, dock_glass: true, icon_only_buttons: true, app_glow: true, glow_style: "horizon", focus_overshoot: false, advanced_effects: true } },
+    { name: "Retro", cfg: { columns: 5, dock_band: false, glass_style: "rim", dock_title: false, ambient_glow: false, icon_only_buttons: true, icon_only_inputs: true, wifi_status_color: true, tile_menu: true, wallpaper_dim: 10, reduced_motion: true } }
+  ];
+
+  // ---------- state ----------
+  var STORE = "cyt-theme-studio-v1";
+  var state = {}, preset = "Built-in look", mode = "changes", tab = "look", previewDock = 5, wallpaperURL = "", focusIdx = 0, lastLen = 4;
+  try { var sv = JSON.parse(localStorage.getItem(STORE) || "null"); if (sv && typeof sv === "object") { state = sv.state || {}; preset = sv.preset || ""; tab = sv.tab || "look"; } } catch (e) {}
+  function save() { try { localStorage.setItem(STORE, JSON.stringify({ state: state, preset: preset, mode: mode, tab: tab })); } catch (e) {} }
+  Object.keys(state).forEach(function (k) { if (!KEYS[k]) delete state[k]; });
+
+  function same(a, b) { return JSON.stringify(a) === JSON.stringify(b); }
+  function has(k) { return Object.prototype.hasOwnProperty.call(state, k); }
+  function v(k) { return has(k) ? state[k] : DEF[k]; }
+  function setKey(k, val) { dropUndo(); if (same(val, DEF[k])) delete state[k]; else state[k] = val; preset = ""; save(); update(k); }
+
+  // ---------- helpers ----------
+  function esc(t) { return String(t).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;"); }
+  function $(id) { return document.getElementById(id); }
+
+  // ---------- tabs and rows ----------
+  var tabsEl = $("tabs"), listEl = $("list"), searchEl = $("search");
+  GROUPS.forEach(function (g) {
+    var b = document.createElement("button"); b.type = "button"; b.className = "tab"; b.dataset.g = g.id; b.setAttribute("role", "tab");
+    b.innerHTML = '<span>' + esc(g.title) + '</span><span class="n" hidden></span>';
+    b.addEventListener("click", function () { tab = g.id; searchEl.value = ""; save(); renderList(); });
+    tabsEl.appendChild(b);
+  });
+
+  function renderList() {
+    var q = searchEl.value.trim().toLowerCase();
+    tabsEl.querySelectorAll(".tab").forEach(function (b) { var on = !q && b.dataset.g === tab; b.classList.toggle("on", on); b.setAttribute("aria-selected", on ? "true" : "false"); });
+    listEl.innerHTML = "";
+    if (q) {
+      $("sectionIntro").textContent = "Settings matching “" + searchEl.value.trim() + "”.";
+      var hits = 0;
+      GROUPS.forEach(function (g) {
+        var ks = g.keys.filter(function (d) { return (d.k + " " + d.l + " " + d.h).toLowerCase().indexOf(q) >= 0; });
+        if (!ks.length) return;
+        var t = document.createElement("h3"); t.className = "group-title"; t.textContent = g.title; listEl.appendChild(t);
+        ks.forEach(function (d) { listEl.appendChild(buildRow(d)); hits++; });
+      });
+      if (!hits) listEl.innerHTML = '<div class="empty">Nothing matches that. Try a plainer word such as colour, dock or clock.</div>';
+    } else {
+      var g = GROUPS.filter(function (x) { return x.id === tab; })[0] || GROUPS[0];
+      $("sectionIntro").textContent = g.intro;
+      g.keys.forEach(function (d) { listEl.appendChild(buildRow(d)); });
+    }
+    ORDER.forEach(syncRow);
+  }
+  searchEl.addEventListener("input", renderList);
+
+  function buildRow(d) {
+    var k = d.k, row = document.createElement("div"); row.className = "row"; row.id = "row-" + k;
+    var id = "k-" + k;
+    var flag = d.own ? '<span class="flag">only written when set</span>' : (d.draw ? "" : '<span class="flag">not shown in the preview</span>');
+    row.innerHTML = '<div class="what"><label class="label" for="' + id + '">' + esc(d.l) + '</label><span class="help">' + esc(d.h) + (d.k === "columns" ? " The Dock slots counter under the TV changes this too." : "") + '</span><span class="meta"><code class="key">' + k + '</code>' + flag + '<button type="button" class="reset" hidden>Reset</button></span></div>';
+    var ctl = document.createElement("div"); ctl.className = "ctl";
+    if (d.t === "b") {
+      ctl.innerHTML = '<span class="switch"><input type="checkbox" id="' + id + '"><span></span></span>';
+      ctl.querySelector("input").addEventListener("change", function (e) { setKey(k, e.target.checked); });
+    } else if (d.t === "i") {
+      ctl.innerHTML = '<span class="range"><input type="range" id="' + id + '-r" min="' + d.min + '" max="' + d.max + '" aria-label="' + esc(d.l) + '"><input class="num" type="number" id="' + id + '" min="' + d.min + '" max="' + d.max + '"></span>' + (d.unit ? '<span style="color:var(--faint);font-size:13px">' + d.unit + '</span>' : '');
+      var r = ctl.querySelector('input[type="range"]'), n = ctl.querySelector(".num");
+      r.addEventListener("input", function () { n.value = r.value; setKey(k, +r.value); });
+      n.addEventListener("change", function () { var x = Math.round(+n.value); if (isNaN(x)) { syncRow(k); return; } x = Math.max(d.min, Math.min(d.max, x)); setKey(k, x); syncRow(k); });
+    } else if (d.t === "e") {
+      ctl.innerHTML = '<div class="seg" role="group" aria-label="' + esc(d.l) + '">' + d.o.map(function (o) { return '<button type="button" data-v="' + o[0] + '">' + esc(o[1]) + '</button>'; }).join("") + '</div>';
+      ctl.querySelectorAll("button").forEach(function (b) { b.addEventListener("click", function () { setKey(k, b.dataset.v); syncRow(k); }); });
+      ctl.querySelector("button").id = id;
+    } else if (d.t === "c") {
+      ctl.innerHTML = '<span class="colour"><input type="color" id="' + id + '-p" aria-label="' + esc(d.l) + '"><input class="txt" style="width:104px;font-family:var(--font-code);font-size:13px" id="' + id + '" maxlength="7" placeholder="#RRGGBB"></span>';
+      var p = ctl.querySelector('input[type="color"]'), tx = ctl.querySelector(".txt");
+      p.addEventListener("input", function () { setKey(k, p.value.toUpperCase()); tx.value = p.value.toUpperCase(); });
+      tx.addEventListener("change", function () { var val = tx.value.trim(); if (!val && d.opt) { setKey(k, ""); return; } if (/^#[0-9a-fA-F]{6}$/.test(val)) setKey(k, val.toUpperCase()); syncRow(k); });
+    } else if (d.t === "s" || d.t === "d") {
+      ctl.innerHTML = '<input class="txt" type="' + (d.t === "d" ? "date" : "text") + '" id="' + id + '" spellcheck="false"' + (d.ph ? ' placeholder="' + esc(d.ph) + '"' : '') + '>';
+      ctl.querySelector("input").addEventListener("input", function (e) { setKey(k, e.target.value.trim()); });
+    } else {
+      ctl.className = "ctl wide";
+      var ph = d.t === "j" ? '{"morning": ["dawn.jpg"], "evening": ["dusk.jpg"], "night": ["stars.jpg"]}' : (d.ph || "one per line");
+      ctl.innerHTML = '<textarea class="list-in" id="' + id + '" spellcheck="false" placeholder="' + esc(ph) + '"></textarea>';
+      var ta = ctl.querySelector("textarea");
+      ta.addEventListener("input", function () {
+        var old = row.querySelector(".err"); if (old) old.remove();
+        function err(t) { var e = document.createElement("div"); e.className = "err"; e.textContent = t; row.appendChild(e); }
+        if (d.t === "j") {
+          if (!ta.value.trim()) { setKey(k, null); return; }
+          try { var o = JSON.parse(ta.value); if (!o || typeof o !== "object" || Array.isArray(o)) throw 0; setKey(k, o); }
+          catch (e) { err("This needs to be a JSON object, like the example. Until it is, the last valid value stays."); }
+          return;
+        }
+        var items = ta.value.split("\n").map(function (x) { return x.trim(); }).filter(Boolean);
+        if (d.t === "n") {
+          var bad = items.filter(function (x) { return !/^\d+$/.test(x); });
+          if (bad.length) { err("Keycodes are whole numbers. Fix: " + bad.join(", ")); return; }
+          items = items.map(Number);
+        }
+        setKey(k, items);
+      });
+    }
+    row.appendChild(ctl);
+    row.querySelector(".reset").addEventListener("click", function () { delete state[k]; preset = ""; save(); syncRow(k); update(); });
+    return row;
+  }
+
+  function syncRow(k) {
+    var d = KEYS[k], row = $("row-" + k); if (!row) return;
+    var val = v(k), id = "k-" + k;
+    row.classList.toggle("changed", has(k));
+    row.querySelector(".reset").hidden = !has(k);
+    if (d.t === "b") $(id).checked = !!val;
+    else if (d.t === "i") { var shown = val == null ? (d.k === "lunar_utc_offset" ? 8 : d.min) : val; if (document.activeElement !== $(id)) $(id).value = val == null ? "" : val; $(id + "-r").value = shown; }
+    else if (d.t === "e") row.querySelectorAll(".seg button").forEach(function (b) { b.classList.toggle("on", b.dataset.v === val); });
+    else if (d.t === "c") { if (document.activeElement !== $(id)) $(id).value = val || ""; $(id + "-p").value = (val || "#F5B301").toLowerCase(); }
+    else if (d.t === "s" || d.t === "d") { if (document.activeElement !== $(id)) $(id).value = val || ""; }
+    else if (document.activeElement !== $(id)) $(id).value = d.t === "j" ? (val ? JSON.stringify(val, null, 2) : "") : (val || []).join("\n");
+  }
+
+  function syncTabs() {
+    tabsEl.querySelectorAll(".tab").forEach(function (b) {
+      var g = GROUPS.filter(function (x) { return x.id === b.dataset.g; })[0];
+      var n = g.keys.filter(function (d) { return has(d.k); }).length;
+      var badge = b.querySelector(".n"); badge.hidden = !n; badge.textContent = n;
+    });
+  }
+
+  // ---------- presets ----------
+  var presetsEl = $("presets");
+  PRESETS.forEach(function (p) {
+    var b = document.createElement("button"); b.type = "button"; b.className = "chip"; b.textContent = p.name;
+    b.addEventListener("click", function () {
+      dropUndo(); state = {}; Object.keys(p.cfg).forEach(function (k) { if (!same(p.cfg[k], DEF[k])) state[k] = p.cfg[k]; });
+      preset = p.name; save(); ORDER.forEach(syncRow); update();
+    });
+    presetsEl.appendChild(b);
+  });
+  function syncPresets() { presetsEl.querySelectorAll(".chip").forEach(function (b) { b.classList.toggle("on", b.textContent === preset); }); }
+
+  // ---------- config.json ----------
+  function outputObj() {
+    var o = {};
+    ORDER.forEach(function (k) {
+      var d = KEYS[k], val = v(k);
+      if (mode === "changes" && !has(k)) return;
+      if (d.own && !has(k)) return;
+      if (val === null || (d.opt && (val === "" || val == null))) return;
+      o[k] = val;
+    });
+    return o;
+  }
+  function renderOut() {
+    var o = outputObj(), keys = Object.keys(o);
+    var lines = ["{"];
+    keys.forEach(function (k, i) {
+      var val = JSON.stringify(o[k], null, 2).replace(/\n/g, "\n  ");
+      var vHTML = esc(val).replace(/&quot;(.*?)&quot;/g, '<span class="s">"$1"</span>');
+      if (!/^[\[{"]/.test(val)) vHTML = '<span class="v">' + esc(val) + '</span>';
+      var line = '  <span class="k">"' + k + '"</span>: ' + vHTML + (i < keys.length - 1 ? "," : "");
+      lines.push(has(k) ? '<span class="ch">' + line + '</span>' : line);
+    });
+    lines.push("}");
+    var pre = $("out"); pre.innerHTML = lines.join("\n");
+    pre._text = JSON.stringify(o, null, 2) + "\n";
+    var nc = Object.keys(state).length;
+    $("outNote").textContent = (mode === "full" ? keys.length + " settings. " : "") + (nc ? nc + " changed from the built-in look, highlighted." : "Nothing changed yet: this is the built-in look.") + (mode === "full" ? " Settings for your own TV (dock, remote, Live TV) appear only once you set them." : "");
+    document.querySelectorAll('.seg[aria-label="What to include"] button').forEach(function (b) { b.classList.toggle("on", b.dataset.mode === mode); });
+  }
+  document.querySelectorAll('.seg[aria-label="What to include"] button').forEach(function (b) { b.addEventListener("click", function () { mode = b.dataset.mode; save(); renderOut(); }); });
+  function copyJSON(btn) {
+    var pre = $("out"), label = btn.textContent;
+    function done(t) { btn.textContent = t; setTimeout(function () { btn.textContent = label; }, 1600); }
+    function fallback() { var r = document.createRange(); r.selectNodeContents(pre); var s = window.getSelection(); s.removeAllRanges(); s.addRange(r); done("Selected, press Ctrl+C"); }
+    try { navigator.clipboard.writeText(pre._text).then(function () { done("Copied"); }, fallback); } catch (e) { fallback(); }
+  }
+  $("copyBtn").addEventListener("click", function () { copyJSON(this); });
+  $("copyTop").addEventListener("click", function () { copyJSON(this); });
+
+  // ---------- import ----------
+  $("loadOpen").addEventListener("click", function () {
+    var box = $("loadBox"), open = box.hidden; box.hidden = !open;
+    this.setAttribute("aria-expanded", open ? "true" : "false");
+    if (open) $("importText").focus();
+  });
+  $("importFile").addEventListener("change", function (e) {
+    var f = e.target.files && e.target.files[0]; if (!f) return;
+    var rd = new FileReader();
+    rd.onload = function () { $("importText").value = String(rd.result || ""); loadConfig(); };
+    rd.readAsText(f); e.target.value = "";
+  });
+  $("importBtn").addEventListener("click", loadConfig);
+  function loadConfig() {
+    var msg = $("importMsg"); msg.className = "msg"; var obj;
+    try { obj = JSON.parse($("importText").value); if (!obj || typeof obj !== "object" || Array.isArray(obj)) throw 0; }
+    catch (e) { msg.className = "msg err"; msg.textContent = "That isn't valid JSON. A config.json starts with { and ends with }, with a comma between settings and none after the last one."; return; }
+    var n = 0, unknown = [], xml = [];
+    dropUndo(); state = {};
+    Object.keys(obj).forEach(function (k) {
+      if (NOT_THEME.indexOf(k) >= 0) { xml.push(k); return; }
+      if (!KEYS[k]) { unknown.push(k); return; }
+      if (!same(obj[k], DEF[k])) state[k] = obj[k];
+      n++;
+    });
+    preset = ""; save(); ORDER.forEach(syncRow); update();
+    var parts = ["Loaded " + n + " setting" + (n === 1 ? "" : "s") + "."];
+    if (xml.length) parts.push("Left out because a theme can't set them: " + xml.join(", ") + ".");
+    if (unknown.length) parts.push("Not launcher settings, so ignored: " + unknown.join(", ") + ".");
+    msg.textContent = parts.join(" ");
+  }
+
+  // ---------- start over, with a short undo ----------
+  var undoState = null, undoTimer = 0;
+  function dropUndo() { if (undoState) { undoState = null; clearTimeout(undoTimer); setStartOver("Start over"); } }
+  function setStartOver(label) { document.querySelectorAll(".startover").forEach(function (b) { b.textContent = label; }); }
+  document.querySelectorAll(".startover").forEach(function (b) {
+    b.addEventListener("click", function () {
+      clearTimeout(undoTimer);
+      if (undoState) { state = undoState.state; preset = undoState.preset; undoState = null; setStartOver("Start over"); }
+      else {
+        if (!Object.keys(state).length) return;
+        undoState = { state: state, preset: preset };
+        state = {}; preset = "Built-in look"; setStartOver("Undo");
+        undoTimer = setTimeout(function () { undoState = null; setStartOver("Start over"); }, 8000);
+      }
+      save(); ORDER.forEach(syncRow); update();
+    });
+  });
+
+  // ---------- checks ----------
+  function renderChecks() {
+    var c = [];
+    function add(level, html) { c.push('<div class="check ' + level + '"><i></i><span>' + html + '</span></div>'); }
+    if (v("boot_to_live_tv") && (v("power_on_home") || v("power_on_home_always"))) add("bad", "Start on Live TV and Home at power-on pull in opposite directions. Keep only one.");
+    if (v("vpn_pill") && v("top_menu")) add("warn", "The separate VPN button is hidden while One menu button is on.");
+    if (v("vpn_pill") && !v("vpn_app")) add("warn", "Set the VPN app too, or the VPN button shows only while a VPN is up and can't open anything useful.");
+    if (!v("cinematic_home") && ["cinematic_dots", "cinematic_white_focus", "cinematic_scrim", "cinematic_art"].some(has)) add("warn", "The shelf settings do nothing until Cinematic shelf is on.");
+    if (v("dock_band_all") && !v("single_row")) add("warn", "Band behind the whole row only applies with Everything in one row.");
+    if (v("single_row") && !v("dock_row")) add("warn", "Everything in one row needs Dock as its own row.");
+    if (!v("app_library") && (v("library_button") || v("app_library_selection") || v("library_ok_opens") || has("show_library_pill") || has("library_apps"))) add("warn", "The library settings need App library switched on.");
+    if (v("wifi_status_warnings") && !v("wifi_status_color")) add("warn", "Orange and red warnings need Green when online.");
+    if (v("wifi_label_width") > 0 && !v("icon_only_buttons")) add("warn", "Keep the network name only matters with icon buttons; the labelled button already shows it.");
+    if (has("clock_wallpaper_dim") && !v("clock_wallpaper")) add("warn", "Darken it behind the clock needs Clock over the wallpaper.");
+    if (has("lunar_utc_offset") && !v("lunar_date")) add("warn", "Lunar calendar zone needs Lunar date.");
+    if ((v("gamepad_passthrough") || v("consume_volume_keys")) && !v("key_filter")) add("warn", "Controller passthrough and the volume fix need Key helper filtering on.");
+    if (has("app_keys") || has("input_key_keycodes") || has("settings_key_keycodes")) add("info", "Remote button mappings need the key helper: install the launcher with <code>INPUT_KEY_SERVICE=1</code>. On some TCL sets it stops held volume from ramping; hold volume up to check.");
+    if (v("power_on_home") || v("power_on_home_always") || v("home_long_press_home") || v("stock_home_redirect")) add("info", "This needs HomeKeyService: install the launcher with <code>HOME_KEY_SERVICE=1</code>.");
+    if (v("restore_key_services")) add("info", "Bring the key helper back also needs <code>RESTORE_KEY_SERVICES=1</code> at install.");
+    if (has("dock_apps") && v("dock_apps").length > v("columns") && v("dock_row") && !v("single_row")) add("warn", v("dock_apps").length + " dock apps but " + v("columns") + " per row: the extra ones won't fit in the dock.");
+    if (v("wallpaper") && (has("wallpaper_dim") || has("wallpaper_true_color") || has("wallpaper_rotation_minutes"))) add("info", "Put <code>wallpaper.jpg</code> (or a <code>wallpapers</code> folder for rotation) beside config.json. Without a picture, the background colour shows.");
+    if (v("wallpaper_true_color")) add("info", "Full-colour decoding needs 2 GB of memory or more. Leave it off on 1 GB TVs.");
+    if (v("festival")) {
+      if (["dussehra", "diwali"].indexOf(v("festival").toLowerCase()) < 0 && !v("greeting")) add("warn", "Only dussehra and diwali have a built-in greeting. Add a festive greeting for anything else.");
+      if (v("festival_until") && v("festival_until") < new Date().toISOString().slice(0, 10)) add("warn", "The last day is in the past, so the skin is already off.");
+    }
+    if (!v("key_filter") && has("key_filter")) add("info", "With filtering off, mapped remote buttons stop working.");
+    var issues = c.length;
+    var nEl = $("checksN"); nEl.hidden = !issues; nEl.textContent = issues;
+    if (!c.length) add("ok", Object.keys(state).length ? "Everything you set works together." : "Pick a look above or change any setting; the TV and config.json follow.");
+    $("checks").innerHTML = c.join("");
+  }
+
+  // ---------- the drawing ----------
+  var APPS = [
+    { n: "Lumen", c: "#e5484d", bg: "#2a0e12", word: "Lumen", wc: "#ffd7d9", shape: "circle" },
+    { n: "Kestrel Music", c: "#12b886", bg: "#062a21", word: "Kestrel", wc: "#c3fae8", shape: "wave" },
+    { n: "Courtside", c: "#f59f00", bg: "#2b1d00", word: "Courtside", wc: "#ffec99", shape: "ring" },
+    { n: "Paper Moon", c: "#7950f2", bg: "#170d36", word: "Paper Moon", wc: "#e5dbff", shape: "moon" },
+    { n: "Harbor News", c: "#1c7ed6", bg: "#06213b", word: "Harbor", wc: "#d0ebff", shape: "square" },
+    { n: "Photos", c: "#e64980", bg: "#f8f0fc", word: "Photos", wc: "#a61e4d", shape: "circle" },
+    { n: "Files", c: "#868e96", bg: "#25262b", word: "Files", wc: "#e9ecef", shape: "square" },
+    { n: "Browser", c: "#4c6ef5", bg: "#edf2ff", word: "Browser", wc: "#364fc7", shape: "ring" },
+    { n: "Podcasts", c: "#ae3ec9", bg: "#2b0a33", word: "Podcasts", wc: "#f3d9fa", shape: "wave" },
+    { n: "Weather", c: "#15aabf", bg: "#e3fafc", word: "Weather", wc: "#0b7285", shape: "circle" },
+    { n: "App store", c: "#40c057", bg: "#ebfbee", word: "App store", wc: "#2b8a3e", shape: "square" },
+    { n: "Settings", c: "#909296", bg: "#373a40", word: "Settings", wc: "#f1f3f5", shape: "ring" },
+    { n: "Live TV", c: "#fa5252", bg: "#c92a2a", word: "Live TV", wc: "#fff", shape: "square" }
+  ];
+  function mark(a) {
+    var s = a.shape, c = a.c;
+    if (s === "circle") return '<span class="mark" style="border-radius:50%;background:' + c + '"></span>';
+    if (s === "ring") return '<span class="mark" style="border-radius:50%;border:12px solid ' + c + ';background:transparent"></span>';
+    if (s === "moon") return '<span class="mark" style="border-radius:50%;background:' + c + ';box-shadow:inset 18px -6px 0 0 ' + a.bg + '"></span>';
+    if (s === "wave") return '<span class="mark" style="background:linear-gradient(135deg,' + c + ' 0 45%,transparent 45% 55%,' + c + ' 55%)"></span>';
+    return '<span class="mark" style="background:' + c + '"></span>';
+  }
+  var ICON = {
+    input: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 3h10v4h2v6a4 4 0 0 1-4 4h-1v4h-4v-4H9a4 4 0 0 1-4-4V7h2V3zm2 2v2h2V5H9zm4 0v2h2V5h-2z"/></svg>',
+    wifi: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 20.5 8.6 16.9a4.8 4.8 0 0 1 6.8 0L12 20.5zM5.4 13.6a9.4 9.4 0 0 1 13.2 0l-1.7 1.8a7 7 0 0 0-9.8 0l-1.7-1.8zM2 10.2a14.2 14.2 0 0 1 20 0l-1.7 1.7a11.8 11.8 0 0 0-16.6 0L2 10.2z"/></svg>',
+    gear: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M19.4 13a7.5 7.5 0 0 0 0-2l2.1-1.6-2-3.5-2.5 1a7.6 7.6 0 0 0-1.7-1L15 3.3h-4l-.4 2.6c-.6.3-1.2.6-1.7 1l-2.5-1-2 3.5L6.6 11a7.5 7.5 0 0 0 0 2l-2.1 1.6 2 3.5 2.5-1c.5.4 1.1.7 1.7 1l.4 2.6h4l.4-2.6c.6-.3 1.2-.6 1.7-1l2.5 1 2-3.5-2.1-1.6zM12 15.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7z"/></svg>',
+    home: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3 2 11.5h3V21h5.5v-6h3v6H19v-9.5h3L12 3z"/></svg>',
+    lock: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 10V8a5 5 0 0 1 10 0v2h1v11H6V10h1zm2 0h6V8a3 3 0 0 0-6 0v2z"/></svg>',
+    lib: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M4 4h6v6H4zm10 0h6v6h-6zM4 14h6v6H4zm10 0h6v6h-6z"/></svg>',
+    reorder: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 4 3 8h3v8h2V8h3L7 4zm10 16 4-4h-3V8h-2v8h-3l4 4z"/></svg>',
+    flame: '<svg viewBox="0 0 24 24" fill="#f5b301"><path d="M12 2c1 4 5 6 5 11a5 5 0 0 1-10 0c0-3 2-4 2-7 1 1 2 2 2 4 1-2 1-5 1-8zM5 19h14v2H5z"/></svg>',
+    bell: '<svg viewBox="0 0 24 24" fill="#f5b301"><path d="M12 2a2 2 0 0 1 2 2v1a6 6 0 0 1 4 6v5l2 2H4l2-2v-5a6 6 0 0 1 4-6V4a2 2 0 0 1 2-2zm-2 18h4a2 2 0 0 1-4 0z"/></svg>',
+    flower: '<svg viewBox="0 0 24 24" fill="#f59e0b"><circle cx="12" cy="6" r="4"/><circle cx="18" cy="12" r="4"/><circle cx="12" cy="18" r="4"/><circle cx="6" cy="12" r="4"/><circle cx="12" cy="12" r="3.5" fill="#b45309"/></svg>'
+  };
+  function rgba(hex, a) { var n = parseInt(hex.slice(1), 16); return "rgba(" + (n >> 16) + "," + ((n >> 8) & 255) + "," + (n & 255) + "," + a + ")"; }
+  function tint(hex, a) { var n = parseInt(hex.slice(1), 16), r = n >> 16, g = (n >> 8) & 255, b = n & 255, k = 17; return "rgb(" + Math.round(k + (r - k) * a) + "," + Math.round(k + (g - k) * a) + "," + Math.round(k + (b - k) * a) + ")"; }
+  function validHex(x) { return /^#[0-9a-fA-F]{6}$/.test(x || ""); }
+
+  var screen = $("screen"), tv = $("tv");
+  function draw() {
+    var o = {}; ORDER.forEach(function (k) { o[k] = v(k); });
+    var fest = !!o.festival, vpnUp = $("vpnUp").checked;
+    var bg = validHex(o.background_color) ? o.background_color : "#000000";
+    var cols = Math.max(1, Math.min(8, o.columns | 0));
+    var dockRow = o.dock_row, single = o.single_row && dockRow;
+    var fromList = has("dock_apps");
+    var nFav = fromList ? Math.min(APPS.length, v("dock_apps").length) : previewDock;
+    $("dockN").textContent = nFav;
+    $("colN").textContent = cols;
+    $("colMinus").disabled = cols <= 1;
+    $("colPlus").disabled = cols >= 8;
+    $("dockMinus").disabled = fromList || nFav <= 1;
+    $("dockPlus").disabled = fromList || nFav >= 8;
+    $("dockStep").title = fromList ? "Follows the Dock apps list you entered under Apps and library" : "Preview only: how many apps your dock list has. Not written to config.json.";
+    // Dock apps come from a pool of favourites; every other app sits in the grid in alphabetical order,
+    // so a slot filled from the grid, or a dock app pushed into it, shows as a different app.
+    var FAV = [0, 1, 2, 3, 4, 8, 9, 5].map(function (i) { return APPS[i]; });
+    var favourites = FAV.slice(0, Math.max(1, nFav));
+    var others = APPS.filter(function (a) { return favourites.indexOf(a) < 0; }).sort(function (a, b) { return a.n.localeCompare(b.n); });
+    var dockApps = favourites.slice(0, cols);
+    var grid = favourites.slice(cols).concat(others);
+    if (dockRow && !single && o.fill_dock && cols > dockApps.length) dockApps = dockApps.concat(grid.splice(0, cols - dockApps.length));
+    var everyApp = favourites.concat(others);
+    var focusList = single ? everyApp : (dockRow ? dockApps : everyApp.slice(0, cols));
+    lastLen = focusList.length;
+    if (focusIdx >= lastLen) focusIdx = lastLen - 1;
+    var app = focusList[focusIdx];
+    var appCol = fest ? (validHex(o.accent_color) ? o.accent_color : "#F5B301") : app.c;
+    $("bias").style.background = "radial-gradient(60% 60% at 50% 55%, " + appCol + ", transparent 70%)";
+
+    // geometry
+    var rowW = 1604, gap = cols > 5 ? 51 * 5 / cols + 10 : 51;
+    var tw = Math.min(340, (rowW - gap * (cols - 1)) / cols), th = tw * 157 / 280;
+    var names = o.always_show_names, title = o.dock_title && dockRow, cine = o.cinematic_home && dockRow;
+    var headerBottom = 220 + (o.date_below_clock ? 70 : 0) + (o.show_stats ? 50 : 0) + (o.lunar_date && o.date_below_clock ? 40 : 0);
+    var r = (dockRow && !single) ? Math.max(0, Math.min(3, o.rows_below_dock | 0)) : 0;
+    var pad = o.dock_even_padding ? gap * .6 : 28;
+    var need = (th + 2 * pad + (names ? 52 : 0)) + r * (th + 40) + (title ? (cine ? 330 : 180) : 40);
+    var bottomLimit = r ? 1050 : 950, avail = bottomLimit - headerBottom, k = need > avail ? Math.max(.45, avail / need) : 1;
+    tw *= k; th *= k; if (k < 1) gap *= k;
+    var rowLeft = 158 + (rowW - (tw * cols + gap * (cols - 1))) / 2;
+    var bandH = th + 2 * pad + (names ? 52 * k : 0);
+    var bandBottom = r ? 1050 - r * (th + 40) - 46 : 950, bandTop = bandBottom - bandH, tileTop = bandTop + pad;
+
+    var h = "";
+    if (o.wallpaper && wallpaperURL) h += '<div class="wpimg" style="background-image:url(' + wallpaperURL + ')"></div>';
+    if (o.wallpaper && wallpaperURL && o.wallpaper_dim) h += '<div class="L" style="background:rgba(0,0,0,' + o.wallpaper_dim / 100 + ')"></div>';
+    if (o.sky_intensity) h += '<div class="L" style="opacity:' + o.sky_intensity / 100 + ';background:radial-gradient(110% 60% at 70% 115%, rgba(196,110,90,.55), rgba(110,64,120,.35) 35%, transparent 70%), linear-gradient(180deg,#05061a 0%,#0d1033 45%,#241a46 100%)"></div>';
+    if (cine) {
+      h += '<div class="L" style="opacity:' + o.cinematic_art / 100 + '"><div style="position:absolute;right:-80px;top:-120px;width:1280px;height:820px;border-radius:60px;filter:blur(70px) saturate(1.2);opacity:.75;background:radial-gradient(60% 60% at 55% 45%,' + appCol + ',transparent 72%)"></div></div>';
+      h += '<div class="L" style="opacity:' + o.cinematic_scrim / 100 + ';background:linear-gradient(90deg,rgba(0,0,0,.9) 0%,rgba(0,0,0,.5) 42%,transparent 75%)"></div>';
+    }
+    if (o.ambient_glow && !fest) {
+      if (o.glow_style === "horizon" || cine) h += '<div class="L" style="opacity:.36;background:linear-gradient(180deg,' + appCol + ' 0%,transparent 60%)"></div>';
+      else h += '<div class="L" style="opacity:.38;background:radial-gradient(42% 42% at 42% ' + Math.round((bandTop - 60) / 10.8) + '%,' + appCol + ',transparent 70%)"></div>';
+    }
+    if (fest) {
+      h += '<div class="L" style="opacity:.3;background:radial-gradient(42% 42% at 42% 62%,' + appCol + ',transparent 70%)"></div>';
+      for (var p = 0; p < 9; p++) h += '<span class="petal" style="left:' + (180 + p * 190) + 'px;top:' + (260 + (p * 97) % 300) + 'px;transform:rotate(' + p * 40 + 'deg)"></span>';
+    }
+    if (o.wallpaper && !wallpaperURL && (has("wallpaper_dim") || has("wallpaper_true_color") || has("wallpaper_rotation_minutes"))) h += '<div class="wpnote">Your wallpaper.jpg shows here.<br>Try one with the button under the TV.</div>';
+
+    // header
+    if (o.show_greeting || fest) {
+      var gtxt = fest ? (o.greeting || ({ dussehra: "Happy Dussehra", diwali: "Happy Diwali" })[o.festival.toLowerCase()] || "Good evening") : "Good evening";
+      if (o.greeting_name) gtxt += ", " + o.greeting_name;
+      h += '<div class="greet">' + esc(gtxt) + '</div>';
+    }
+    h += '<div class="clock">20:44</div>';
+    var dateHTML = (o.shamsi_date ? '<span class="sub">5 Ābān 1405</span>' : '') + '<span>Tuesday 27 October</span>' + (o.lunar_date ? '<span class="sub">Lunar 18/9 · Year of the Horse</span>' : '');
+    var white = o.header_white ? " white" : "";
+    if (o.date_below_clock) h += '<div class="dates' + white + '" style="left:123px;top:' + (o.shamsi_date ? 214 : 222) + 'px">' + dateHTML + '</div>';
+    else h += '<div class="vline' + white + '" style="left:409px;top:' + (o.shamsi_date ? 128 : 142) + 'px"></div><div class="dates' + white + '" style="left:445px;top:' + (o.shamsi_date ? 120 : 160) + 'px">' + dateHTML + '</div>';
+    if (o.show_stats) h += '<div class="stats" style="top:' + (o.date_below_clock ? (o.lunar_date ? 330 : 290) : 214) + 'px"><span>CPU <b>9%</b></span><span>Memory <b>1.1 GB</b> free</span><span>Storage <b>9.6 GB</b> free</span></div>';
+
+    // top bar
+    var green = o.wifi_status_color ? ";color:#22c55e" : "";
+    var wifiIcon = '<span style="display:flex' + green + '">' + (fest ? ICON.flame : ICON.wifi) + '</span>';
+    if (o.top_menu) h += '<div class="gearc">' + ICON.gear + '</div>';
+    else {
+      var pills = [];
+      (o.top_bar_apps || []).slice(0, 3).forEach(function (pkg) { pills.push('<div class="pill logo">' + esc((pkg.split(".").pop() || "?")[0].toUpperCase()) + '</div>'); });
+      if (o.reorder_button) pills.push('<div class="pill round">' + ICON.reorder + '</div>');
+      if (o.show_inputs_pill) pills.push(o.icon_only_inputs ? '<div class="pill round">' + (fest ? ICON.bell : ICON.input) + '</div>' : '<div class="pill">' + (fest ? ICON.bell : ICON.input) + 'Inputs</div>');
+      if (o.show_network_pill) {
+        var badge = "";
+        if (!o.vpn_pill) { if (vpnUp) badge = '<span class="badge">VPN</span>'; else if (o.vpn_app) badge = '<span class="badge" style="background:#ef4444;color:#fff">VPN off</span>'; }
+        if (o.icon_only_buttons && o.wifi_label_width <= 0 && !badge) pills.push('<div class="pill round">' + wifiIcon + '</div>');
+        else if (o.icon_only_buttons) pills.push('<div class="pill" style="padding:0 26px">' + wifiIcon + (o.wifi_label_width > 0 ? '<span class="lbl" style="max-width:' + Math.round(o.wifi_label_width * 1.5) + 'px">Home Wi-Fi</span>' : '') + badge + '</div>');
+        else pills.push('<div class="pill">' + wifiIcon + 'Home Wi-Fi' + badge + '</div>');
+      }
+      if (o.vpn_pill && (vpnUp || o.vpn_app)) pills.push(vpnUp ? '<div class="pill vpn">' + ICON.lock + 'VPN</div>' : '<div class="pill vpn" style="background:#b91c1c;border-color:#ef4444">VPN off</div>');
+      var setIcon = fest ? ICON.flower : (o.launcher_settings_button ? ICON.home : ICON.gear);
+      pills.push(o.icon_only_buttons ? '<div class="pill round">' + setIcon + '</div>' : '<div class="pill">' + setIcon + 'Settings</div>');
+      if (o.library_button && o.app_library) pills.push('<div class="pill round">' + ICON.lib + '</div>');
+      h += '<div class="pills">' + pills.join("") + '</div>';
+    }
+
+    // name above the dock
+    if (title) {
+      if (cine) {
+        var nameTop = bandTop - 300 * Math.max(.75, k);
+        h += '<div class="lastop" style="top:' + (nameTop - 40) + 'px">Last opened</div>';
+        h += '<div class="hero" style="top:' + nameTop + 'px;font-size:' + Math.round(140 * Math.max(.7, k)) + 'px">' + esc(app.n) + '</div>';
+        if (o.cinematic_dots) h += '<div class="dots" style="top:' + (nameTop + 190 * Math.max(.7, k)) + 'px">' + focusList.map(function (a, i) { return '<b class="' + (i === focusIdx ? "on" : "") + '"></b>'; }).join("") + '</div>';
+      } else h += '<div class="hero" style="top:' + (bandTop - 165 * Math.max(.75, k)) + 'px;font-size:' + Math.round(104 * Math.max(.75, k)) + 'px">' + esc(app.n) + '</div>';
+    }
+
+    // band
+    if (dockRow && o.dock_band) {
+      var count = single ? (o.dock_band_all ? everyApp.length : favourites.length) : cols;
+      var side = o.dock_even_padding ? gap * .6 : 43;
+      var bw = count * tw + (count - 1) * gap + 2 * side, alpha = o.dock_opacity / 100;
+      var bandBg = o.dock_glass ? "rgba(255,255,255," + (.1 * alpha + .02) + ")" : (cine ? "rgba(22,22,26," + Math.min(alpha, .7) + ")" : "rgba(20,20,22," + alpha + ")");
+      h += '<div class="band" style="left:' + (rowLeft - side) + 'px;top:' + bandTop + 'px;width:' + bw + 'px;height:' + bandH + 'px;background:' + bandBg + ';border-color:' + (o.dock_glass ? "rgba(255,255,255,.22)" : "rgba(255,255,255,.07)") + '"></div>';
+    }
+
+    // tiles
+    var ringCol = (o.app_glow || (cine && !o.cinematic_white_focus) || fest) ? appCol : null, ring;
+    if (o.glass_style === "rim") ring = "border:4px solid rgba(255,255,255,.95);" + (ringCol ? "box-shadow:0 0 50px 4px " + rgba(ringCol, .7) + ";" : "");
+    else if (o.glass_style === "halo") ring = "border:3px solid rgba(255,255,255,.9);box-shadow:0 0 46px 10px " + (ringCol ? rgba(ringCol, .6) : "rgba(255,255,255,.22)") + ";";
+    else ring = "background:linear-gradient(180deg,rgba(255,255,255,.26),rgba(255,255,255,.06) 40%,rgba(255,255,255,.1));border:3px solid rgba(255,255,255,.75);box-shadow:0 0 " + (ringCol ? "60px 6px " + rgba(ringCol, .75) : "30px 2px rgba(255,255,255,.12)") + ";";
+    var motion = !o.animations ? "none" : (o.reduced_motion ? "transform .09s linear" : (o.focus_overshoot ? "transform .3s cubic-bezier(.3,1.5,.5,1)" : "transform .25s ease-out"));
+    var lift = "scale(" + (o.advanced_effects ? 1.12 : 1.09) + ")" + (o.advanced_effects ? " translateY(-8px)" : "");
+    function tile(a, x, y, i, inRow) {
+      var f = inRow && i === focusIdx;
+      var art = o.uniform_tiles
+        ? '<div class="art" style="background:' + tint(a.c, .38) + '"><div class="ucard"><i style="background:' + a.c + '"></i></div></div>'
+        : '<div class="art" style="background:' + a.bg + '"><div class="banner" style="transform:scale(' + (tw / 280) + ')">' + mark(a) + '<span class="word" style="color:' + a.wc + '">' + esc(a.word) + '</span></div></div>';
+      var nm = (inRow || names) ? '<div class="nm" style="top:' + (th + 16) + 'px;font-size:' + Math.round(30 * Math.max(.75, k)) + 'px">' + esc(a.n) + '</div>' : '';
+      return '<div class="tile' + (f ? " focus" : "") + (names && inRow ? " dimname" : "") + '" data-i="' + (inRow ? i : -1) + '" style="left:' + x + 'px;top:' + y + 'px;width:' + tw + 'px;height:' + th + 'px;transition:' + motion + (f ? ";transform:" + lift + ";z-index:2" : "") + '"><div class="ring" style="' + ring + '"></div>' + art + nm + '</div>';
+    }
+    if (!dockRow) {
+      var top0 = Math.max(headerBottom + 60, 520);
+      everyApp.forEach(function (a, i) { var y = top0 + Math.floor(i / cols) * (th + 46); if (y < 1080) h += tile(a, rowLeft + (i % cols) * (tw + gap), y, i, i < cols); });
+    } else if (single) {
+      everyApp.forEach(function (a, i) { h += tile(a, rowLeft + i * (tw + gap), tileTop, i, true); });
+      h += '<div class="L" style="left:auto;width:240px;background:linear-gradient(90deg,transparent,' + bg + ')"></div>';
+    } else {
+      dockApps.forEach(function (a, i) { h += tile(a, rowLeft + i * (tw + gap), tileTop, i, true); });
+      var gridTop = bandBottom + 46 + (names ? 0 : 40);
+      grid.forEach(function (a, i) { var y = gridTop + Math.floor(i / cols) * (th + 40); if (y < 1080) h += tile(a, rowLeft + (i % cols) * (tw + gap), y, i, false); });
+    }
+
+    screen.style.background = bg;
+    screen.innerHTML = h;
+    screen.querySelectorAll(".tile").forEach(function (t) { var i = +t.dataset.i; if (i >= 0) t.addEventListener("click", function () { focusIdx = i; draw(); tv.focus({ preventScroll: true }); }); });
+  }
+
+  tv.addEventListener("keydown", function (e) {
+    if (e.key === "ArrowRight") { focusIdx = Math.min(lastLen - 1, focusIdx + 1); draw(); e.preventDefault(); }
+    if (e.key === "ArrowLeft") { focusIdx = Math.max(0, focusIdx - 1); draw(); e.preventDefault(); }
+  });
+  $("vpnUp").addEventListener("change", draw);
+  $("colMinus").addEventListener("click", function () { setKey("columns", Math.max(1, v("columns") - 1)); });
+  $("colPlus").addEventListener("click", function () { setKey("columns", Math.min(8, v("columns") + 1)); });
+  $("dockMinus").addEventListener("click", function () { previewDock = Math.max(1, previewDock - 1); draw(); });
+  $("dockPlus").addEventListener("click", function () { previewDock = Math.min(8, previewDock + 1); draw(); });
+  $("wpFile").addEventListener("change", function (e) {
+    var f = e.target.files && e.target.files[0]; if (!f) return;
+    if (wallpaperURL) URL.revokeObjectURL(wallpaperURL);
+    wallpaperURL = URL.createObjectURL(f); draw();
+  });
+  function fit() { screen.style.transform = "scale(" + (tv.clientWidth / 1920) + ")"; }
+  if (window.ResizeObserver) new ResizeObserver(fit).observe(tv); else window.addEventListener("resize", fit);
+
+  document.querySelectorAll(".card-tabs button").forEach(function (b) {
+    b.addEventListener("click", function () {
+      document.querySelectorAll(".card-tabs button").forEach(function (x) { var on = x === b; x.classList.toggle("on", on); x.setAttribute("aria-selected", on ? "true" : "false"); });
+      document.querySelectorAll(".pane").forEach(function (p) { p.hidden = p.dataset.p !== b.dataset.p; });
+    });
+  });
+  function update(k) { if (k) syncRow(k); syncTabs(); syncPresets(); renderOut(); renderChecks(); draw(); }
+
+  renderList(); fit(); update();
+})();
+</script>
+</body>
+</html>
