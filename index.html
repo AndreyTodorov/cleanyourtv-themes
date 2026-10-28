@@ -135,6 +135,10 @@ code { font-family: var(--font-code); font-size: .86em; background: var(--wall-2
 .btn:hover { background: var(--wall-2); }
 .btn.primary { background: var(--led); border-color: var(--led); color: var(--led-ink); }
 .btn.primary:hover { background: #ffc46e; }
+/* Actions next to the looks: links, so they don't read as one more look. */
+.btn.link { border: 0; background: none; padding: 4px 0; color: var(--led); font-weight: 400; text-decoration: underline; text-underline-offset: 3px; }
+.btn.link:hover { background: none; color: #ffc46e; }
+.ownrow.actions { gap: 6px 22px; }
 .tabs { display: flex; flex-wrap: wrap; gap: 4px 4px; }
 .tab { flex: none; border: 0; background: transparent; color: var(--soft); border-radius: 10px; padding: 6px 11px; font-family: var(--font-display); font-size: 14.5px; cursor: pointer; display: inline-flex; gap: 7px; align-items: center; }
 .tab:hover { background: var(--glass); color: var(--ink); }
@@ -202,7 +206,6 @@ textarea.list-in { width: 100%; min-height: 78px; background: var(--wall); borde
    The TV shrinks so the card keeps about 300px; only the code box and the steps scroll inside the card. */
 @media (min-width: 1101px) and (min-height: 700px) {
   body { padding-bottom: 18px; }
-  #copyTop { display: none; }
   .stage { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 18px); height: calc(100vh - 36px); }
   .tvblock { flex: none; }
   .room { width: min(100%, calc((100vh - 500px) * 1.78 + 40px)); min-width: 360px; margin: 0 auto; padding: 20px 20px 14px; }
@@ -351,9 +354,9 @@ textarea.list-in { width: 100%; min-height: 78px; background: var(--wall); borde
       <div class="presets">
         <h2>Start from a look</h2>
         <div class="chips" id="presets"></div>
-        <div class="ownrow">
-          <button class="btn" type="button" id="loadOpen" aria-expanded="false" aria-controls="loadBox">Load my own config.json</button>
-          <button class="btn startover" type="button">Start over</button>
+        <div class="ownrow actions">
+          <button class="btn link" type="button" id="loadOpen" aria-expanded="false" aria-controls="loadBox">Load my own config.json</button>
+          <button class="btn link startover" type="button">Start over</button>
         </div>
         <div class="loadbox" id="loadBox" hidden>
           <p>Paste your theme's config.json, or choose the file. Its settings appear below, ready to edit; anything it leaves out stays at the built-in value.</p>
@@ -369,7 +372,6 @@ textarea.list-in { width: 100%; min-height: 78px; background: var(--wall); borde
       <div class="editor-top">
         <div class="searchrow">
           <input class="search" id="search" type="search" placeholder="Search settings: glow, wallpaper, clock&hellip;" autocomplete="off" aria-label="Search settings">
-          <button class="btn primary" type="button" id="copyTop">Copy config.json</button>
         </div>
         <div class="tabs" id="tabs" role="tablist" aria-label="Setting groups"></div>
       </div>
@@ -741,7 +743,6 @@ textarea.list-in { width: 100%; min-height: 78px; background: var(--wall); borde
     try { navigator.clipboard.writeText(pre._text).then(function () { done("Copied"); }, fallback); } catch (e) { fallback(); }
   }
   $("copyBtn").addEventListener("click", function () { copyJSON(this); });
-  $("copyTop").addEventListener("click", function () { copyJSON(this); });
 
   // ---------- import ----------
   $("loadOpen").addEventListener("click", function () {
