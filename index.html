@@ -560,9 +560,9 @@ textarea.list-in { width: 100%; min-height: 78px; background: var(--wall); borde
       case "b": return typeof x === "boolean";
       case "i": return typeof x === "number" && Math.round(x) === x && x >= d.min && x <= d.max;
       case "e": return d.o.some(function (o) { return o[0] === x; });
-      case "c": return /^#[0-9a-fA-F]{6}$/.test(x) || (!!d.opt && x === "");
+      case "c": return typeof x === "string" && (/^#[0-9a-fA-F]{6}$/.test(x) || (!!d.opt && x === ""));
       case "s": return typeof x === "string";
-      case "d": return x === "" || /^\d{4}-\d{2}-\d{2}$/.test(x);
+      case "d": return typeof x === "string" && (x === "" || /^\d{4}-\d{2}-\d{2}$/.test(x));
       case "l": return Array.isArray(x) && x.every(function (y) { return typeof y === "string"; });
       case "n": return Array.isArray(x) && x.every(function (y) { return typeof y === "number" && Math.round(y) === y && y >= 0; });
       case "j": return typeof x === "object" && !Array.isArray(x);
