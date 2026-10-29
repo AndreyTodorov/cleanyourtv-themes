@@ -10,7 +10,7 @@ For what each setting does on a real TV, and how to get a theme into the project
 
 ## How it's built
 
-It's one file, `index.html`, with no build step and no dependencies apart from Google Fonts. Open it in a browser to run it locally. GitHub Pages publishes `main` as it is, and `CNAME` sets the custom domain.
+It's one file, `index.html`, with no build step and no dependencies. The fonts are self-hosted in `fonts/` (licences in `fonts/LICENSES.md`), so the page makes no requests to other servers. `impressum/` and `privacy/` hold the legal pages. Open `index.html` in a browser to run it locally. GitHub Pages publishes `main` as it is, and `CNAME` sets the custom domain.
 
 ## Keeping it in step with the launcher
 
